@@ -26,3 +26,4 @@ if __name__ == "__main__":
     print(get_top_ips(log, "A"))
     print(get_top_ips(log))
     print(get_top_ips([]))
+    print()
