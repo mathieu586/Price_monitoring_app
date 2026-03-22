@@ -13,6 +13,9 @@ def read_log():
             continue
 
         fields = log.split(separator)
+        if len(fields) < 15:
+            continue
+
 
         ts = datetime.fromtimestamp(float(fields[0]))
         uid = fields[1]

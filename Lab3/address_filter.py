@@ -12,6 +12,7 @@ def get_entries_by_addr(log, addr):
                     return []
         except(ValueError):
             print("Podano adres hosta nieprawidłowego typu")
+            return []
 
 
     def check(singleLog):

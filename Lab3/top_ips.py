@@ -8,6 +8,9 @@ def get_top_ips(log, n = 10):
     ipPresance = {}
 
     for singleLog in log:
+        if len(singleLog) < 3:
+            continue
+
         hostIp = singleLog[2]
         if hostIp in ipPresance:
             ipPresance[hostIp] += 1

@@ -4,6 +4,9 @@ def get_failed_reads(log, merge = False):
     err4xx = []
     err5xx = []
     for singleLog in log:
+        if len(singleLog) < 10:
+            continue
+
         if 400 <= singleLog[9] < 500:
             err4xx.append(singleLog)
         elif 500 <= singleLog[9] < 600:

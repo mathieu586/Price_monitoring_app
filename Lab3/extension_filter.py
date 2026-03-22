@@ -2,6 +2,8 @@ from log_reader import read_log
 
 def get_entries_by_extension(log, ext):
     def check(singleLog):
+        if len(singleLog) < 9:
+            return False
         uri = singleLog[8]
         firstSplit = uri.split("?")
         singleLogExt = firstSplit[0].split(".")[-1]
