@@ -31,6 +31,9 @@ def read_log():
         logData = (ts, uid, idOrigH, idOrigP, idRespH, idRespP, method, host, uri, statusCode)
         logList.append(logData)
 
+    if not logList:
+        print("Nie znaleziono żadnych logów w podanym pliku")
+
     return logList
 
 if __name__ == "__main__":

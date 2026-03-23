@@ -20,7 +20,7 @@ def get_entries_in_time_range(log, start, end):
 if __name__ == "__main__":
     log = read_log()
 
-    print(get_entries_in_time_range(log, datetime.datetime(2012, 3, 16, 13, 30, 2), datetime.datetime(2012, 3, 16, 13, 30, 6)))
+    print(get_entries_in_time_range(log, datetime.datetime(2012, 3, 15, 13, 30, 2), datetime.datetime(2012, 3, 16, 13, 30, 6)))
     print(get_entries_in_time_range([], datetime.datetime(2012, 3, 16, 13, 30, 2), datetime.datetime(2012, 3, 16, 13, 30, 6)))
     print(get_entries_in_time_range(log, datetime.datetime(2020, 3, 16, 13, 30, 2), datetime.datetime(2012, 3, 16, 13, 30, 6)))
     print(get_entries_in_time_range(log, 12, 23))
