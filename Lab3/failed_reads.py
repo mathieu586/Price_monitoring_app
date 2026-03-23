@@ -20,7 +20,7 @@ def get_failed_reads(log, merge = False):
 if __name__ == "__main__":
     log = read_log()
 
- #   print(get_failed_reads(log))
-  #  print(get_failed_reads(log, merge = True))
+    print(get_failed_reads(log))
+    print(get_failed_reads(log, merge = True))
     print(get_failed_reads([]))
     print(get_failed_reads([], merge = True))

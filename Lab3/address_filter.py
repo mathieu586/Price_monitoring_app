@@ -26,9 +26,9 @@ def get_entries_by_addr(log, addr):
 if __name__ == "__main__":
     log = read_log()
 
-    get_entries_by_addr(log, "192.168.202.79")
-    get_entries_by_addr(log, "300.168.202.79")
-    get_entries_by_addr(log, "żurek")
+    print(get_entries_by_addr(log, "192.168.202.79"))
+    print(get_entries_by_addr(log, "300.168.202.79"))
+    print(get_entries_by_addr(log, "żurek"))
 
 
 
