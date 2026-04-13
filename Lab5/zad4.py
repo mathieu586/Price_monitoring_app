@@ -27,8 +27,8 @@ def analyze_stations(path):
     }
     date_pattern = re.compile(r"\b\d{4}-\d{2}-\d{2}\b")
     cord_pattern = re.compile(r"\b\d+\.\d{6}\b")
-    myslnik_pattern = re.compile(r".+ - (?![Mm]obil).+")
-    triple_pattern = re.compile(r".+ - .+ - (?![Mm]obil).+")
+    myslnik_pattern = re.compile(r".+ - .+")
+    triple_pattern = re.compile(r".+ - .+ - .+")
     street_pattern = re.compile(r"\b(ul\.|al\.)\s+[A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż\s]+,\s*[A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż\s]+", re.IGNORECASE)
 
     for s in stations:
