@@ -37,8 +37,14 @@ def setup_logging():
 
 logger = setup_logging()
 
+class ArgumentParser(argparse.ArgumentParser):
+    def error(self, message):
+        logger.error(f"Błąd argumentów: {message}")
+        self.print_usage(sys.stderr)
+        sys.exit(2)
+
 def parse():
-    parser = argparse.ArgumentParser(description="command line interface")
+    parser = ArgumentParser(description="command line interface")
     parser.add_argument("--wielkosc", required=True, type=str, help="Podaj mierzoną wielkość(np: PM2.5, PM10, NO)", choices=["PM10", "PM2.5", "NO", "NO2", "NOX", "O3", "SO2", "CO", "C6H6"])
     parser.add_argument("--czestotliwosc", required=True, type=str, help="Podaj częstotliwość(1g/24g)")
     parser.add_argument("--przedzial_start", required=True, type=validate_date, help="Podaj początek przedziału czasowego(format: rrr-mm-dd)")
@@ -60,8 +66,8 @@ def validate_date(date):
 if __name__ == "__main__":
     args = parse()
 
-    pomiary_path = r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\measurements"
-    stacje_path = r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\stacje.csv"
+    pomiary_path = r"C:\Users\kubap\PycharmProjects\PythonProject8\Lab5\measurements"
+    stacje_path = r"C:\Users\kubap\PycharmProjects\PythonProject8\Lab5\stacje.csv"
 
     try:
         files = group_measurement_files_by_key(pomiary_path)
