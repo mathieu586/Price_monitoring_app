@@ -79,6 +79,7 @@ def parse_measurements(catalog_path):
                         index += 1
         except FileNotFoundError:
             print("Nie znaleziono pliku w podanej ścieżce")
+            return []
 
 
     return measurements
@@ -86,11 +87,13 @@ def parse_measurements(catalog_path):
 
 
 
-
-
-
-
 if __name__ == "__main__":
     x = parse_stacje(r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\stacje.csv")
     y = parse_measurements(r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\measurements")
+
+    print(x)
+    print()
+
+    test1 = parse_stacje(r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\empty")
+    test2 = parse_stacje("kfadshkfawuw")
 
