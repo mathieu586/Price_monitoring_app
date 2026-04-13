@@ -5,7 +5,37 @@ from group_measurement import group_measurement_files_by_key
 from parser import parse_stacje
 import csv
 import random
+import logging
+import sys
 
+
+class MaxLevelFilter(logging.Filter):
+    def __init__(self, max_level):
+        super().__init__()
+        self.max_level = max_level
+
+    def filter(self, record):
+        return record.levelno <= self.max_level
+
+def setup_logging():
+    logger = logging.getLogger("cli")
+    logger.setLevel(logging.DEBUG)
+    formatter = logging.Formatter("[%(levelname)s] %(message)s")
+
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(logging.DEBUG)
+    stdout_handler.setFormatter(formatter)
+    stdout_handler.addFilter(MaxLevelFilter(logging.WARNING))
+
+    stderr_handler = logging.StreamHandler(sys.stderr)
+    stderr_handler.setLevel(logging.ERROR)
+    stderr_handler.setFormatter(formatter)
+    logger.addHandler(stdout_handler)
+    logger.addHandler(stderr_handler)
+
+    return logger
+
+logger = setup_logging()
 
 def parse():
     parser = argparse.ArgumentParser(description="command line interface")
@@ -33,8 +63,19 @@ if __name__ == "__main__":
     pomiary_path = r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\measurements"
     stacje_path = r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\stacje.csv"
 
-    files = group_measurement_files_by_key(pomiary_path)
-    stacje = parse_stacje(stacje_path)
+    try:
+        files = group_measurement_files_by_key(pomiary_path)
+    except Exception as e:
+        logger.error(f"Nie można wczytać katalogu z pomiarami: {e}")
+        sys.exit(1)
+
+    try:
+        logger.info(f"Otwieranie pliku: {stacje_path}")
+        stacje = parse_stacje(stacje_path)
+        logger.info(f"Zamknięcie pliku: {stacje_path}")
+    except Exception as e:
+        logger.error(f"Plik nie istnieje: {stacje_path}")
+        sys.exit(1)
 
     if args.sub == "losowo":
         res_kody = set()
@@ -43,17 +84,25 @@ if __name__ == "__main__":
             file = files.get((str(year), args.wielkosc, args.czestotliwosc))
 
             if file:
+                logger.info(f"Otwieranie pliku: {file}")
                 with open(file, "r", encoding="utf-8") as f:
                     reader = csv.reader(f, delimiter=",")
-                    rows = list(reader)
-                    if len(rows) > 1:
-                        kody = rows[1][1:]
-                        for kod in kody:
-                            if kod.strip():
-                                res_kody.add(kod.strip())
+                    rows = []
+                    for row in reader:
+                        bytes_count = sum(len(cell.encode("utf-8")) for cell in row)
+                        logger.debug(f"Przeczytano wiersz: {bytes_count} bajtów")
+                        rows.append(row)
+                logger.info(f"Zamknięcie pliku: {file}")
+                if len(rows) > 1:
+                    kody = rows[1][1:]
+                    for kod in kody:
+                        if kod.strip():
+                            res_kody.add(kod.strip())
+            else:
+                logger.warning(f"Brak pliku pomiarów")
 
         if not res_kody:
-            print("Brak stacji")
+            logger.warning("Brak stacji")
         else:
             rand_kod = random.choice(list(res_kody))
             found_stacja = None
@@ -65,7 +114,7 @@ if __name__ == "__main__":
             if found_stacja:
                 print(f"Wylosowana stacja:\n Nazwa: {found_stacja.get('nazwa')}\nAdres: {found_stacja.get('adres')}")
             else:
-                print(f"Brak danych w stacje.csv")
+                logger.warning(f"Brak danych w stacje.csv")
 
     elif args.sub == "srednia_odchylenie":
         wartosci = []
@@ -74,45 +123,52 @@ if __name__ == "__main__":
             file = files.get((str(year), args.wielkosc, args.czestotliwosc))
 
             if not file:
+                logger.warning(f"Brak pliku pomiarów")
                 continue
             else:
+                logger.info(f"Otwieranie pliku: {file}")
                 with open(file, "r", encoding="utf-8") as f:
                     reader = csv.reader(f, delimiter=",")
-                    rows = list(reader)
+                    rows = []
+                    for row in reader:
+                        bytes_count = sum(len(cell.encode("utf-8")) for cell in row)
+                        logger.debug(f"Przeczytano wiersz: {bytes_count} bajtów")
+                        rows.append(row)
+                logger.info(f"Zamknięcie pliku: {file}")
+                kody_stacji = rows[1]
 
-                    kody_stacji = rows[1]
+                try:
+                    index_kolumny = kody_stacji.index(args.stacja)
+                except ValueError:
+                    logger.warning(f"Stacja nie występuje w pliku dla podanych argumentów")
+                    continue
 
-                    try:
-                        index_kolumny = kody_stacji.index(args.stacja)
-                    except ValueError:
+
+                pomiary = rows[6:]
+
+                for wiersz in pomiary:
+                    if not wiersz or not wiersz[0]:
                         continue
 
+                    data = wiersz[0].split(" ")[0]
+                    # print(data)
 
-                    pomiary = rows[6:]
+                    try:
+                        data_pomiaru = datetime.datetime.strptime(data, "%m/%d/%y")
 
-                    for wiersz in pomiary:
-                        if not wiersz or not wiersz[0]:
-                            continue
+                        if args.przedzial_start <= data_pomiaru <= args.przedzial_koniec:
+                            wartosc_str = wiersz[index_kolumny]
 
-                        data = wiersz[0].split(" ")[0]
-                       # print(data)
+                            if wartosc_str.strip():
+                                wartosc_float = float(wartosc_str.replace(",", "."))
+                                wartosci.append(wartosc_float)
 
-                        try:
-                            data_pomiaru = datetime.datetime.strptime(data, "%m/%d/%y")
-
-                            if args.przedzial_start <= data_pomiaru <= args.przedzial_koniec:
-                                wartosc_str = wiersz[index_kolumny]
-
-                                if wartosc_str.strip():
-                                    wartosc_float = float(wartosc_str.replace(",", "."))
-                                    wartosci.append(wartosc_float)
-
-                        except ValueError:
-                            continue
+                    except ValueError:
+                        continue
         if wartosci:
             srednia = statistics.mean(wartosci)
             odch = statistics.stdev(wartosci)
 
             print(f"Stacja {args.stacja}\nśrednia: {srednia:.2f}\nodcyhlenie: {odch:.2f}")
         else:
-            print("Brak danych z pomiarów")
+            logger.warning(f"Brak danych z pomiarów")
