@@ -69,7 +69,7 @@ def analyze_stations(path):
     return results
 
 if __name__ == "__main__":
-    data = analyze_stations(r"C:\Users\kubap\PycharmProjects\PythonProject8\Lab5\stacje.csv")
+    data = analyze_stations(r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\stacje.csv")
     print("Daty: ", data["dates"][:10])
     print("Współrzędne:", data["cords"][:10])
     print("Nazwy z myślnikiem:", data["myslnik_names"][:10])
@@ -78,7 +78,7 @@ if __name__ == "__main__":
     print("ul./al.:", data["street_locations"][:10])
 
     print()
-    data2 =  analyze_stations(r"C:\Users\kubap\PycharmProjects\PythonProject8\Lab5\pusty.csv")
+    data2 =  analyze_stations(r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\pusty.csv")
     print("Daty: ", data2["dates"][:10])
     print("Współrzędne:", data2["cords"][:10])
     print("Nazwy z myślnikiem:", data2["myslnik_names"][:10])
