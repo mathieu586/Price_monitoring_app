@@ -173,7 +173,10 @@ if __name__ == "__main__":
                         continue
         if values:
             srednia = statistics.mean(values)
-            odch = statistics.stdev(values)
+            if len(values) > 2:
+                odch = statistics.stdev(values)
+            else:
+                odch = 0
 
             print(f"Stacja {args.stacja}\nśrednia: {srednia:.2f}\nodchylenie: {odch:.2f}")
         else:
