@@ -45,7 +45,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
 def parse():
     parser = ArgumentParser(description="command line interface")
-    parser.add_argument("--wielkosc", required=True, type=str, help="Podaj mierzoną wielkość(np: PM2.5, PM10, NO)", choices=["PM10", "PM2.5", "NO", "NO2","NOx" "O3", "SO2", "CO", "C6H6"])
+    parser.add_argument("--wielkosc", required=True, type=str, help="Podaj mierzoną wielkość(np: PM2.5, PM10, NO)", choices=["PM10", "PM2.5", "NO", "NO2","NOx", "O3", "SO2", "CO", "C6H6"])
     parser.add_argument("--czestotliwosc", required=True, type=str, help="Podaj częstotliwość(1g/24g)")
     parser.add_argument("--przedzial_start", required=True, type=validate_date, help="Podaj początek przedziału czasowego(format: rrr-mm-dd)")
     parser.add_argument("--przedzial_koniec", required=True, type=validate_date, help="Podaj koniec przedziału czasowego(format: rrr-mm-dd)")
@@ -163,10 +163,10 @@ if __name__ == "__main__":
                         data_pomiaru = datetime.datetime.strptime(data, "%m/%d/%y")
 
                         if args.przedzial_start <= data_pomiaru <= args.przedzial_koniec:
-                            value_str = row[index_col]
+                            value_string = row[index_col]
 
-                            if value_str.strip():
-                                value = float(value_str)
+                            if value_string.strip():
+                                value = float(value_string)
                                 values.append(value)
 
                     except ValueError:
@@ -175,6 +175,6 @@ if __name__ == "__main__":
             srednia = statistics.mean(values)
             odch = statistics.stdev(values)
 
-            print(f"Stacja {args.stacja}\nśrednia: {srednia:.2f}\nodcyhlenie: {odch:.2f}")
+            print(f"Stacja {args.stacja}\nśrednia: {srednia:.2f}\nodchylenie: {odch:.2f}")
         else:
             logger.warning(f"Brak danych z pomiarów")
