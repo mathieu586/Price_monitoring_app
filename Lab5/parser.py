@@ -86,12 +86,16 @@ def parse_measurements(catalog_path):
 
 if __name__ == "__main__":
     x = parse_stacje(r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\stacje.csv")
-    y = parse_measurements(r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\measurements")
+  #  y = parse_measurements(r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\measurements")
+    pusta_linia_test = parse_stacje(r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\empty_line_test.csv")
 
-    print(x)
+    print(pusta_linia_test[0])
+    print(pusta_linia_test[1])
+
+    print(f"przykładowy wczytany słownik: {x[0]}")
     print()
 
     test1 = parse_stacje(r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\empty")
-    test2 = parse_stacje("kfadshkfawuw")
+   # test2 = parse_stacje("kfadshkfawuw")
 
 
