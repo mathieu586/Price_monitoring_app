@@ -7,7 +7,7 @@ def group_measurement_files_by_key(path):
     if not isinstance(path, Path):
         path = Path(path)
 
-    pattern = r"^(\d{4})_(.+?)_([^_]+)\.csv$"
+    pattern = r"^(\d{4})_([^_]+)_([^_]+)\.csv$"
     result_dict = {}
 
     if not path.is_dir():

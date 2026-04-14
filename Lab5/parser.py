@@ -11,35 +11,34 @@ def parse_stacje(file_path):
 
             for row in reader:
                 station_data = {
-                    "nr": row.get("Nr"),
-                    "kod": row.get("Kod stacji"),
-                    "kod_miedzynarodowy": row.get("Kod międzynarodowy"),
-                    "nazwa": row.get("Nazwa stacji"),
-                    "data_uruchomienia": row.get("Data uruchomienia"),
-                    "data_zamkniecia": row.get("Data zamknięcia"),
-                    "typ_stacji": row.get("Typ stacji"),
-                    "typ_obszaru": row.get("Typ obszaru"),
-                    "rodzaj_stacji": row.get("Rodzaj stacji"),
-                    "wojewodztwo": row.get("Województwo"),
-                    "miejscowosc": row.get("Miejscowość"),
-                    "adres": row.get("Adres"),
-                    "szerokosc_geo": row.get("WGS84 φ N"),
-                    "dlugosc_geo": row.get("WGS84 λ E")
+                    "nr" : row.get("Nr"),
+                    "kod" : row.get("Kod stacji"),
+                    "kod_miedzynarodowy" : row.get("Kod międzynarodowy"),
+                    "nazwa" : row.get("Nazwa stacji"),
+                    "data_uruchomienia" : row.get("Data uruchomienia"),
+                    "data_zamkniecia" : row.get("Data zamknięcia"),
+                    "typ_stacji" : row.get("Typ stacji"),
+                    "typ_obszaru" : row.get("Typ obszaru"),
+                    "rodzaj_stacji" : row.get("Rodzaj stacji"),
+                    "wojewodztwo" : row.get("Województwo"),
+                    "miejscowosc" : row.get("Miejscowość"),
+                    "adres" : row.get("Adres"),
+                    "szerokosc_geo" : row.get("WGS84 φ N"),
+                    "dlugosc_geo" : row.get("WGS84 λ E")
                 }
                 stations.append(station_data)
 
         return stations
 
     except FileNotFoundError:
-        print("Nie znaleziono pliku w podanej ścieżce")
-        return []
+        raise FileNotFoundError("Nie znaleziono pliku w podanej ścieżce")
 
 def parse_measurements(catalog_path):
     measurements = []
 
-    files = os.listdir(catalog_path)
+    file_names = os.listdir(catalog_path)
 
-    for file_name in files:
+    for file_name in file_names:
         file_path = os.path.join(catalog_path, file_name)
 
         try:
@@ -67,13 +66,14 @@ def parse_measurements(catalog_path):
                     for col in wpis[1:]:
                         try:
                             if col.strip():
-                                value = float(col.replace(",", "."))
+                                value = float(col)
                             else:
                                 value = None
 
-                            measurements.append({"nr": index, "kod_stacji" : kod_stacji[index] if index < len(kod_stacji) else None, "data" : data, "wartosc": value})
+                            measurements.append({"nr": index, "kod_stacji" : kod_stacji[index], "data" : data, "wartosc": value})
 
                         except ValueError:
+                            index += 1
                             continue
 
                         index += 1
@@ -81,10 +81,7 @@ def parse_measurements(catalog_path):
             print("Nie znaleziono pliku w podanej ścieżce")
             return []
 
-
     return measurements
-
-
 
 
 if __name__ == "__main__":
@@ -96,4 +93,5 @@ if __name__ == "__main__":
 
     test1 = parse_stacje(r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\empty")
     test2 = parse_stacje("kfadshkfawuw")
+
 

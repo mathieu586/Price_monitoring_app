@@ -45,7 +45,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
 def parse():
     parser = ArgumentParser(description="command line interface")
-    parser.add_argument("--wielkosc", required=True, type=str, help="Podaj mierzoną wielkość(np: PM2.5, PM10, NO)", choices=["PM10", "PM2.5", "NO", "NO2", "NOX", "O3", "SO2", "CO", "C6H6"])
+    parser.add_argument("--wielkosc", required=True, type=str, help="Podaj mierzoną wielkość(np: PM2.5, PM10, NO)", choices=["PM10", "PM2.5", "NO", "NO2","NOx" "O3", "SO2", "CO", "C6H6"])
     parser.add_argument("--czestotliwosc", required=True, type=str, help="Podaj częstotliwość(1g/24g)")
     parser.add_argument("--przedzial_start", required=True, type=validate_date, help="Podaj początek przedziału czasowego(format: rrr-mm-dd)")
     parser.add_argument("--przedzial_koniec", required=True, type=validate_date, help="Podaj koniec przedziału czasowego(format: rrr-mm-dd)")
@@ -66,8 +66,8 @@ def validate_date(date):
 if __name__ == "__main__":
     args = parse()
 
-    pomiary_path = r"C:\Users\kubap\PycharmProjects\PythonProject8\Lab5\measurements"
-    stacje_path = r"C:\Users\kubap\PycharmProjects\PythonProject8\Lab5\stacje.csv"
+    pomiary_path = r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\measurements"
+    stacje_path = r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\stacje.csv"
 
     try:
         files = group_measurement_files_by_key(pomiary_path)
@@ -84,7 +84,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     if args.sub == "losowo":
-        res_kody = set()
+        set_kody = set()
 
         for year in range(args.przedzial_start.year, args.przedzial_koniec.year + 1):
             file = files.get((str(year), args.wielkosc, args.czestotliwosc))
@@ -103,14 +103,14 @@ if __name__ == "__main__":
                     kody = rows[1][1:]
                     for kod in kody:
                         if kod.strip():
-                            res_kody.add(kod.strip())
+                            set_kody.add(kod.strip())
             else:
                 logger.warning(f"Brak pliku pomiarów")
 
-        if not res_kody:
+        if not set_kody:
             logger.warning("Brak stacji")
         else:
-            rand_kod = random.choice(list(res_kody))
+            rand_kod = random.choice(list(set_kody))
             found_stacja = None
             for stacja in stacje:
                 if stacja.get("kod") == rand_kod:
@@ -123,7 +123,7 @@ if __name__ == "__main__":
                 logger.warning(f"Brak danych w stacje.csv")
 
     elif args.sub == "srednia_odchylenie":
-        wartosci = []
+        values = []
 
         for year in range(args.przedzial_start.year, args.przedzial_koniec.year + 1):
             file = files.get((str(year), args.wielkosc, args.czestotliwosc))
@@ -144,7 +144,7 @@ if __name__ == "__main__":
                 kody_stacji = rows[1]
 
                 try:
-                    index_kolumny = kody_stacji.index(args.stacja)
+                    index_col = kody_stacji.index(args.stacja)
                 except ValueError:
                     logger.warning(f"Stacja nie występuje w pliku dla podanych argumentów")
                     continue
@@ -152,28 +152,28 @@ if __name__ == "__main__":
 
                 pomiary = rows[6:]
 
-                for wiersz in pomiary:
-                    if not wiersz or not wiersz[0]:
+                for row in pomiary:
+                    if not row:
                         continue
 
-                    data = wiersz[0].split(" ")[0]
+                    data = row[0].split(" ")[0]
                     # print(data)
 
                     try:
                         data_pomiaru = datetime.datetime.strptime(data, "%m/%d/%y")
 
                         if args.przedzial_start <= data_pomiaru <= args.przedzial_koniec:
-                            wartosc_str = wiersz[index_kolumny]
+                            value_str = row[index_col]
 
-                            if wartosc_str.strip():
-                                wartosc_float = float(wartosc_str.replace(",", "."))
-                                wartosci.append(wartosc_float)
+                            if value_str.strip():
+                                value = float(value_str)
+                                values.append(value)
 
                     except ValueError:
                         continue
-        if wartosci:
-            srednia = statistics.mean(wartosci)
-            odch = statistics.stdev(wartosci)
+        if values:
+            srednia = statistics.mean(values)
+            odch = statistics.stdev(values)
 
             print(f"Stacja {args.stacja}\nśrednia: {srednia:.2f}\nodcyhlenie: {odch:.2f}")
         else:
