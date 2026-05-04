@@ -26,3 +26,26 @@ class PasswordGenerator:
         return password
 
 
+
+if __name__ == "__main__":
+    password_gen_1 = PasswordGenerator(6, 3, charset="abcdefg1234")
+
+    for i in range(3):
+        print(next(password_gen_1))
+
+    print()
+
+    password_gen_2 = PasswordGenerator(10, 2)
+    print(next(password_gen_2))
+
+    password_gen_3 = PasswordGenerator(0, 1)
+    print(next(password_gen_3))
+
+    print()
+    password_gen_4 = PasswordGenerator(5, 3, "a1")
+
+    for i in range(4):
+        try:
+            print(next(password_gen_4))
+        except StopIteration as e:
+            print(f"Złapano wyjątek: {e}")
