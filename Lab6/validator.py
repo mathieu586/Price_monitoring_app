@@ -1,22 +1,22 @@
 from abc import abstractmethod, ABC
 from datetime import datetime
 
-from time_series import TimeSeries
+from Lab6.time_series import TimeSeries
 import statistics
 
 class SeriesValidator(ABC):
 
     @abstractmethod
-    def analyze(self, series: TimeSeries):
+    def analyze(self, series: TimeSeries) -> list[str]:
         pass
 
 class OutlierDetector(SeriesValidator):
-    def __init__(self, k=2):
-        self.k = k
+    def __init__(self, k: int = 2) -> None:
+        self.k: int = k
 
-    def analyze(self, series: TimeSeries):
-        alerts = []
-        stat_wartosci = []
+    def analyze(self, series: TimeSeries) -> list[str]:
+        alerts: list[str] = []
+        stat_wartosci: list[float] = []
 
         for wart in series.wartosci:
             if wart is not None:
@@ -25,10 +25,10 @@ class OutlierDetector(SeriesValidator):
         if len(stat_wartosci) < 2:
             return []
 
-        stddev = statistics.stdev(stat_wartosci)
-        mean = statistics.mean(stat_wartosci)
+        stddev: float = statistics.stdev(stat_wartosci)
+        mean: float = statistics.mean(stat_wartosci)
 
-        i = 0
+        i: int = 0
         for wartosc in series.wartosci:
             if wartosc is not None and abs(wartosc - mean) > self.k * stddev:
                 alerts.append(f"[Outlier detector]Pomiar z dnia {series.daty[i]}, o wartości: {wartosc} przekroczył różnice {self.k} * odchylenie od średniej: {mean}")
@@ -39,13 +39,13 @@ class OutlierDetector(SeriesValidator):
 
 
 class ZeroSpikeDetector(SeriesValidator):
-    def analyze(self, series: TimeSeries):
-        alerts = []
-        no_data_counter = 0
+    def analyze(self, series: TimeSeries) -> list[str]:
+        alerts: list[str] = []
+        no_data_counter: int = 0
 
-        i = 0
-        f = False
-        last_missing_data_index = 0
+        i: int = 0
+        f: bool = False
+        last_missing_data_index: int = 0
         for wartosc in series.wartosci:
             if wartosc is None or wartosc == 0:
                 no_data_counter += 1
@@ -69,13 +69,13 @@ class ZeroSpikeDetector(SeriesValidator):
 
 
 class ThresholdDetector(SeriesValidator):
-    def __init__(self, threshold):
-        self.threshold = threshold
+    def __init__(self, threshold: float) -> None:
+        self.threshold: float = threshold
 
-    def analyze(self, series: TimeSeries):
-        alerts = []
+    def analyze(self, series: TimeSeries) -> list[str]:
+        alerts: list[str] = []
 
-        i = 0
+        i: int = 0
         for wartosc in series.wartosci:
             if wartosc is not None and wartosc > self.threshold:
                 alerts.append(f"[Threshold detector]Wykryto pomiar przekraczający zadany próg: {self.threshold}, wartość pomiaru: {wartosc}, data: {series.daty[i]}")
@@ -85,8 +85,8 @@ class ThresholdDetector(SeriesValidator):
         return alerts
 
 if __name__ == "__main__":
-    time_series = TimeSeries("PM10", 2, 33, [datetime(1, 2, 3), datetime(1, 2, 4), datetime(1, 2, 5), datetime(1, 2, 3), datetime(1, 2, 4), datetime(1, 2, 5), datetime(1, 2, 3), datetime(1, 2, 4)], [1, 3, None, 0, None, 0, 200, 12], "g/m3")
-    time_series2 = TimeSeries("PM10", 3, 13, [datetime(1, 2, 4), datetime(1, 2, 5), datetime(1, 2, 3)], [1, 6, 10], "g/m3")
+    time_series = TimeSeries("PM10", "AbcStacja1", "24g", [datetime(1, 2, 3), datetime(1, 2, 4), datetime(1, 2, 5), datetime(1, 2, 3), datetime(1, 2, 4), datetime(1, 2, 5), datetime(1, 2, 3), datetime(1, 2, 4)], [1, 3, None, 0, None, 0, 200, 12], "g/m3")
+    time_series2 = TimeSeries("PM10", "DDFStacja2", "12g", [datetime(1, 2, 4), datetime(1, 2, 5), datetime(1, 2, 3)], [1, 6, 10], "g/m3")
 
     detector1 = OutlierDetector(2)
     detector2 = ZeroSpikeDetector()

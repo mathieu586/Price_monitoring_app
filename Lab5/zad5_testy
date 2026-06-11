@@ -1,5 +1,5 @@
 help:
-python cli.py -help
+python cli.py --help
 
 bledna wielkosc:
 python cli.py --wielkosc asdfa --czestotliwosc 24g --przedzial_start 2023-01-01 --przedzial_koniec 2023-01-31

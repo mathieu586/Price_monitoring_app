@@ -2,7 +2,7 @@ import csv
 import os
 from datetime import datetime
 from validator import OutlierDetector,ZeroSpikeDetector,ThresholdDetector
-from TimeSeries import TimeSeries
+from time_series import TimeSeries
 
 
 class Measurements:
@@ -150,7 +150,7 @@ class Measurements:
         return f" Measurement: {self.path!r}, series: {self.catalog}, loaded: {self.loadedseries}"
 
 if __name__ == "__main__":
-    m = Measurements(r"C:\Users\kubap\PycharmProjects\PythonProject8\lab5\measurements")
+    m = Measurements(r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\measurements")
     print(len(m))
     print("PM25" in m)
     print("nieistniejacy" in m)

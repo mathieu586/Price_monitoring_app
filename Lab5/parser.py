@@ -97,6 +97,6 @@ if __name__ == "__main__":
     print()
 
     test1 = parse_stacje(r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\empty")
-   # test2 = parse_stacje("kfadshkfawuw")
+    test2 = parse_stacje("kfadshkfawuw")
 
 

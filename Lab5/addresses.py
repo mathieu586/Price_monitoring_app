@@ -41,4 +41,4 @@ def get_addresses(path, city):
 if __name__ == "__main__" :
     print(get_addresses(r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\stacje.csv", "Warszawa"))
     print(get_addresses(r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\stacje.csv", ""))
-    #print(get_addresses(r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\zlyplik.csv", "Warszawa"))
+    print(get_addresses(r"C:\Users\admin\PycharmProjects\PythonProject\Lab5\zlyplik.csv", "Warszawa"))

@@ -1,26 +1,28 @@
-from log_reader import read_log
 import datetime
 
-def get_entries_in_time_range(log, start, end):
-    if not isinstance(start, datetime.datetime) or  not isinstance(end, datetime.datetime):
+def get_entries_in_time_range(log, start=None, end=None):
+    if (start is not None and not isinstance(start, datetime.datetime)) or (end is not None and not isinstance(end, datetime.datetime)):
         print("Argument start i end musi być datą")
         return []
 
+    if not log:
+        return []
+
+    min_date = min(log, key=lambda x: x.ts)
+    max_date = max(log, key=lambda x: x.ts)
+
+    if not start:
+        start = min_date.ts
+
+    if not end:
+        end = max_date.ts
+
     output = []
     for singleLog in log:
-        if len(singleLog) < 1:
-            continue
-        ts = singleLog[0]
+        ts = singleLog.ts
 
-        if start <= ts < end:
+        if start <= ts <= end:
             output.append(singleLog)
 
     return output
 
-if __name__ == "__main__":
-    log = read_log()
-
-    print(get_entries_in_time_range(log, datetime.datetime(2012, 3, 15, 13, 30, 2), datetime.datetime(2012, 3, 16, 13, 30, 6)))
-    print(get_entries_in_time_range([], datetime.datetime(2012, 3, 16, 13, 30, 2), datetime.datetime(2012, 3, 16, 13, 30, 6)))
-    print(get_entries_in_time_range(log, datetime.datetime(2020, 3, 16, 13, 30, 2), datetime.datetime(2012, 3, 16, 13, 30, 6)))
-    print(get_entries_in_time_range(log, 12, 23))

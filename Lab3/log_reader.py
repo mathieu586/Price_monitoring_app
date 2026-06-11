@@ -1,40 +1,45 @@
 import sys
 from datetime import datetime
 
+class Log:
+    def __init__(self, fields):
+        self.ts = datetime.fromtimestamp(float(fields[0]))
+        self.uid = fields[1]
+        self.idOrigH = fields[2]
+        self.idOrigP = int(fields[3])
+        self.idRespH = fields[4]
+        self.idRespP = int(fields[5])
+        self.method = fields[7]
+        self.host = fields[8]
+        self.uri = fields[9]
+        self.size = fields[13]
+        self.statusCode = int(fields[14]) if fields[14] != "-" else 0
 
-def read_log():
+
+
+def read_log(file_path):
     separator = "\t"
     logList = []
 
-    for log in sys.stdin:
-        log = log.strip()
+    try:
+        with open(file_path, "r", encoding="utf-8") as file:
+            for log in file:
+                log = log.strip()
 
-        if not log:
-            continue
+                if not log:
+                    continue
 
-        fields = log.split(separator)
-        if len(fields) < 15:
-            continue
+                fields = log.split(separator)
+                if len(fields) < 15:
+                    continue
 
+                new_log = Log(fields)
 
-        ts = datetime.fromtimestamp(float(fields[0]))
-        uid = fields[1]
-        idOrigH = fields[2]
-        idOrigP = int(fields[3])
-        idRespH = fields[4]
-        idRespP = int(fields[5])
-        method = fields[7]
-        host = fields[8]
-        uri = fields[9]
-        statusCode = int(fields[14])  if fields[14] != "-" else 0
+                logList.append(new_log)
 
-        logData = (ts, uid, idOrigH, idOrigP, idRespH, idRespP, method, host, uri, statusCode)
-        logList.append(logData)
-
-    if not logList:
-        print("Nie znaleziono żadnych logów w podanym pliku")
-
+            if not logList:
+                print("Nie znaleziono żadnych logów w podanym pliku")
+    except FileNotFoundError:
+        print("Nie znaleziono pliku")
     return logList
 
-if __name__ == "__main__":
-    read_log()
