@@ -146,6 +146,21 @@ class Product:
 
         return product
 
+    def get_table_row(self):
+        stats = self.get_stats()
+
+        return (
+            self.name,
+            self.store,
+            f"{stats.current_price or 0.0} {stats.currency}",
+            f"{stats.best_price or 0.0}",
+            f"{stats.change_percentage or 0.0}%",
+            f"{stats.avg_price or 0.0}",
+            stats.total_checks,
+            stats.last_status.value,
+            stats.last_checked.strftime("%Y-%m-%d %H:%M") if stats.last_checked else "N/A"
+        )
+
     @staticmethod
     def generate_id():
         return str(uuid.uuid4())[:8]
