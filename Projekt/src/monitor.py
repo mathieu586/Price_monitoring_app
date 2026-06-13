@@ -1,7 +1,10 @@
 import time
+import logging
 
 from scraper import Scraper
 from repository import MemoryRepository
+
+logger = logging.getLogger(__name__)
 
 class PriceMonitor:
     def __init__(self, repository, scraper):
@@ -10,6 +13,10 @@ class PriceMonitor:
 
     def check_product(self, product, notif_func=None):
         price = self.scraper.fetch_price(product)
+
+        if price is None:
+            logger.error(f"fetch_price zwróciło None dla {product.name}")
+            return
 
         if product.add_price(price):
             self.repository.save_product(product)

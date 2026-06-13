@@ -26,27 +26,35 @@ class Scraper:
             soup = BeautifulSoup(response.text, "html.parser")
             element = soup.select_one(product.selector)
 
-            if element:
-                full_text = element.get("data-price") or element.get("content") or element.get_text(strip=True)
-                full_text_upper = full_text.upper()
+            if not element:
+                logger.warning(f"Nie znaleziono elementu dla selektora '{product.selector}'")
+                return PriceRecord(price = 0.0, currency="PLN", status=Status.NOT_FOUND, available=False)
 
-                currency = "PLN"
-                if "$" in full_text_upper or "USD" in full_text_upper:
-                    currency = "USD"
-                elif "€" in full_text_upper or "EUR" in full_text_upper:
-                    currency = "EUR"
-                elif "£" in full_text_upper or "GBP" in full_text_upper:
-                    currency = "GBP"
+            full_text = element.get("data-price") or element.get("content") or element.get_text(strip=True)
+            if not full_text:
+                logger.warning("Znaleziony element jest pusty")
+                return PriceRecord(price = 0.0, currency="PLN", status=Status.ERROR, available=False)
+            full_text_upper = full_text.upper()
 
-                no_space_text = full_text.replace(" ", "").replace("\u00A0", "")
+            currency = "PLN"
+            if "$" in full_text_upper or "USD" in full_text_upper:
+                currency = "USD"
+            elif "€" in full_text_upper or "EUR" in full_text_upper:
+                currency = "EUR"
+            elif "£" in full_text_upper or "GBP" in full_text_upper:
+                currency = "GBP"
 
-                price_reg = re.search(r"(\d+[,.]\d{2}|\d+)", no_space_text)
+            no_space_text = full_text.replace(" ", "").replace("\u00A0", "")
 
-                if price_reg:
-                    full_price = price_reg.group(1)
-                    clean_price = full_price.replace(",", ".")
+            price_reg = re.search(r"(\d+[,.]\d{2}|\d+)", no_space_text)
 
-                    return PriceRecord(float(clean_price), currency)
+            if not price_reg:
+                logger.warning(f"Nie wykryto ceny w tekście '{full_text}")
+                return PriceRecord(price = 0.0, currency="PLN", status=Status.ERROR, available=False)
+            full_price = price_reg.group(1)
+            clean_price = full_price.replace(",", ".")
+
+            return PriceRecord(float(clean_price), currency)
         except requests.exceptions.RequestException as e:
             logger.error(f"Błąd pobrania żądania dla produktu {product.url} : {e}")
             return PriceRecord(0.0, "PLN", status=Status.UNAVAILABLE, available=False)

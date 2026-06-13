@@ -54,7 +54,10 @@ class StoreConfig:
 #dodam wiecej potem bo trzeba sprawdzic ktore dzialaja
 BUILTIN_STORES =[
     StoreConfig("Ceneo", "ceneo.pl", ".product-price .value, .price-box .price", builtin = True),
-    StoreConfig("Amazon", "amazon.", "#corePriceDisplay_desktop_feature_div .a-price .a-offscreen, #priceblock_ourprice", builtin=True, currency="EUR")
+    StoreConfig("Amazon", "amazon.", "#corePriceDisplay_desktop_feature_div .a-price-whole, .apexPriceToPay .a-price-whole, #price_inside_buybox, .a-price .a-offscreen", builtin=True, currency="EUR"),
+    StoreConfig("Books to Scrape", "books.toscrape.com", ".product_main .price_color", builtin=True, currency="GBP"),
+    StoreConfig("Morele", "morele.net", ".product-price", builtin=True, currency="PLN"),
+    StoreConfig("Oxylabs Sandbox", "sandbox.oxylabs.io", "div[class*='product-info-wrapper'] div[class*='price']", builtin=True, currency="EUR")
 ]
 
 class StoreRegistry:

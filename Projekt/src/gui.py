@@ -51,7 +51,7 @@ class Main_window(ctk.CTk):
         self.delete_button = ctk.CTkButton(master=self.action_buttons_frame, text="Usuń", height=28, width=40, command=self.delete_selected_product)
         self.delete_button.pack(padx=5, side="left")
 
-        self.history_button = ctk.CTkButton(master=self.action_buttons_frame, text="Historia", height=28, width=40)
+        self.history_button = ctk.CTkButton(master=self.action_buttons_frame, text="Historia", height=28, width=40, command=self.open_history_window)
         self.history_button.pack(padx=5, side="left")
 
         self.shops_button = ctk.CTkButton(master=self.action_buttons_frame, text="Sklepy", height=28, width=40)
@@ -405,6 +405,62 @@ class Main_window(ctk.CTk):
                 time.sleep(check_interval)
 
         threading.Thread(target=worker_loop, daemon=True).start()
+
+
+    def open_history_window(self):
+        selected_product_entry = self.product_tree.selection()
+
+        if not selected_product_entry:
+            CTkMessagebox(title="Wybierz produkt", message="Nie zaznaczono produktu do edycji!")
+            return
+
+        product_id = selected_product_entry[0]
+        product = self.repo.get_product_by_id(product_id)
+        if not product:
+            CTkMessagebox(title="Błąd", message="Nie znaleziono produktu")
+            return
+
+        self.history_window = ctk.CTkToplevel(self)
+        self.history_window.title(f"Historia cen - {product.name}")
+        self.history_window.geometry("520x200")
+
+        self.history_window.transient(self)
+        self.history_window.grab_set()
+        self.history_window.focus()
+
+        self.history_window.rowconfigure(1, weight=1)
+        self.history_window.columnconfigure(0, weight=1)
+
+        header = ctk.CTkLabel(self.history_window, text = f"{product.name} | {product.store} | {product.url}", wraplength=680, anchor="w", padx = 10, pady=6)
+        header.grid(row=0, column=0, sticky="ew")
+
+        frame = ctk.CTkFrame(self.history_window)
+        frame.grid(row=1, column=0, sticky="nesw", padx=8,pady=8)
+        frame.rowconfigure(0, weight=1)
+        frame.columnconfigure(0, weight=1)
+
+        cols = ("Data", "Cena", "Waluta", "Dostępność", "Status")
+        tree = ttk.Treeview(frame, columns=cols, show="headings")
+        scroll = ctk.CTkScrollbar(frame, command=tree.yview)
+        tree.configure(yscrollcommand=scroll.set)
+
+        tree.heading("Data", text="Data")
+        tree.heading("Cena", text="Cena")
+        tree.heading("Waluta", text="Waluta")
+        tree.heading("Dostępność", text="Dostępność")
+        tree.heading("Status", text="Status")
+
+        tree.column("Data", width=150,anchor="center")
+        tree.column("Cena", width=100,anchor="center")
+        tree.column("Waluta", width=70,anchor="center")
+        tree.column("Dostępność", width=90,anchor="center")
+        tree.column("Status", width=120,anchor="center")
+
+        for record in reversed(product.price_history):
+            tree.insert("", "end", values=(record.timestamp.strftime("%Y-%m-%d %H:%M"), record.price, record.currency, "Tak" if record.available else "Nie", record.status.value))
+
+        scroll.pack(side="right", fill="y")
+        tree.pack(expand=True, fill="both")
 
 
 if __name__ == "__main__":
