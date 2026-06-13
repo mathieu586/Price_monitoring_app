@@ -1,10 +1,16 @@
+import time
+import threading
 import customtkinter as ctk
 from tkinter import ttk
-
+import logging
 from Projekt.src.stores import StoreRegistry
 from repository import JsonRepository
 from scraper import Scraper
 from models import Product, PriceRecord
+from CTkMessagebox import CTkMessagebox
+from monitor import PriceMonitor
+
+logger = logging.getLogger(__name__)
 
 class Main_window(ctk.CTk):
     def __init__(self):
@@ -20,13 +26,16 @@ class Main_window(ctk.CTk):
         self.grid_columnconfigure(0, weight=4, uniform="a")
         self.grid_columnconfigure(1, weight=3, uniform="a")
 
-        self.make_button_rows()
-        self.make_product_panel()
-        self.make_notification_panel()
-
         self.repo = JsonRepository("product_data.json")
         self.scraper = Scraper()
         self.store_registry = StoreRegistry("stores.json")
+        self.monitor = PriceMonitor(self.repo, self.scraper)
+
+        self.make_button_rows()
+        self.make_product_panel()
+        self.make_notification_panel()
+        self.refresh_product_entries()
+
 
     def make_button_rows(self):
         # PRZYCISKI AKCJI
@@ -36,10 +45,10 @@ class Main_window(ctk.CTk):
         self.add_button = ctk.CTkButton(master=self.action_buttons_frame, text="Dodaj", height=28, width=40, command=self.open_add_window)
         self.add_button.pack(padx=5, side="left")
 
-        self.edit_button = ctk.CTkButton(master=self.action_buttons_frame, text="Edytuj", height=28, width=40)
+        self.edit_button = ctk.CTkButton(master=self.action_buttons_frame, text="Edytuj", height=28, width=40, command=self.open_edit_window)
         self.edit_button.pack(padx=5, side="left")
 
-        self.delete_button = ctk.CTkButton(master=self.action_buttons_frame, text="Usuń", height=28, width=40)
+        self.delete_button = ctk.CTkButton(master=self.action_buttons_frame, text="Usuń", height=28, width=40, command=self.delete_selected_product)
         self.delete_button.pack(padx=5, side="left")
 
         self.history_button = ctk.CTkButton(master=self.action_buttons_frame, text="Historia", height=28, width=40)
@@ -57,29 +66,29 @@ class Main_window(ctk.CTk):
 
         self.filter_var = ctk.StringVar(value="date")
 
-        self.filter_date = ctk.CTkRadioButton(master=self.filter_frame, variable=self.filter_var, value="date", text="Data")
+        self.filter_date = ctk.CTkRadioButton(master=self.filter_frame, variable=self.filter_var, value="date", text="Data dodania", command=self.refresh_product_entries)
         self.filter_date.pack(side="left")
 
-        self.filter_name = ctk.CTkRadioButton(master=self.filter_frame, variable=self.filter_var, value="name",text="Nazwa")
+        self.filter_name = ctk.CTkRadioButton(master=self.filter_frame, variable=self.filter_var, value="name",text="Nazwa", command=self.refresh_product_entries)
         self.filter_name.pack(side="left")
 
-        self.filter_price = ctk.CTkRadioButton(master=self.filter_frame, variable=self.filter_var, value="price", text="Cena")
+        self.filter_price = ctk.CTkRadioButton(master=self.filter_frame, variable=self.filter_var, value="price", text="Cena", command=self.refresh_product_entries)
         self.filter_price.pack(side="left")
 
-        self.filter_store = ctk.CTkRadioButton(master=self.filter_frame, variable=self.filter_var, value="store", text="Sklep")
+        self.filter_store = ctk.CTkRadioButton(master=self.filter_frame, variable=self.filter_var, value="store", text="Sklep", command=self.refresh_product_entries)
         self.filter_store.pack(side="left")
 
-        self.filter_change = ctk.CTkRadioButton(master=self.filter_frame, variable=self.filter_var, value="change", text="Termin zmiany")
+        self.filter_change = ctk.CTkRadioButton(master=self.filter_frame, variable=self.filter_var, value="change", text="Termin zmiany", command=self.refresh_product_entries)
         self.filter_change.pack(side="left")
 
         # GŁÓWNE PRZYCISKI
         self.main_buttons_frame = ctk.CTkFrame(self)
         self.main_buttons_frame.grid(row=0, column=0, columnspan=2, sticky="nesw")
 
-        self.start_button = ctk.CTkButton(master=self.main_buttons_frame, text="Start", height=28, width=40)
+        self.start_button = ctk.CTkButton(master=self.main_buttons_frame, text="Start", height=28, width=40, command=self.start_checking_loop)
         self.start_button.pack(side="right", padx=5)
 
-        self.check_all_button = ctk.CTkButton(master=self.main_buttons_frame, text="Sprawdź wszystkie", height=28, width=40)
+        self.check_all_button = ctk.CTkButton(master=self.main_buttons_frame, text="Sprawdź wszystkie", height=28, width=40, command=lambda: threading.Thread(target=self.check_all_products, daemon=True).start())
         self.check_all_button.pack(side="right", padx=5)
 
         self.interval_entry = ctk.CTkEntry(master=self.main_buttons_frame, width=60)
@@ -130,12 +139,36 @@ class Main_window(ctk.CTk):
         self.product_tree.column("Status", width=100, anchor="center")
         self.product_tree.column("Ostatnie_sprawdzenie", width=130, anchor="center")
 
-    def add_product_entry(self, product_data):
-        self.product_tree.insert(parent="", index="end", values=product_data)
+    def add_product_entry(self, product):
+        self.product_tree.insert(parent="", index="end", iid=product.id, values=product.get_table_row())
 
     def clear_product_entries(self):
         for product in self.product_tree.get_children():
             self.product_tree.delete(product)
+
+    def refresh_product_entries(self):
+        self.after(0, self.safe_refresh_product_entries)
+
+    def safe_refresh_product_entries(self):
+        self.clear_product_entries()
+        all_products = self.repo.get_all_products()
+
+        sort_mode = self.filter_var.get()
+
+
+        if sort_mode == "date":
+            all_products.sort(key=lambda x: x.add_time, reverse=True)
+        elif sort_mode == "name":
+            all_products.sort(key=lambda x: x.name.lower())
+        elif sort_mode == "price":
+            all_products.sort(key=lambda x: x.price_history[-1].price if x.price_history else float("inf"))
+        elif sort_mode == "store":
+            all_products.sort(key=lambda x: x.store)
+        elif sort_mode == "change":
+            all_products.sort(key=lambda x: x.price_history[-1].timestamp if x.price_history else x.add_time, reverse=True)
+
+        for product in all_products:
+            self.add_product_entry(product)
 
     def make_notification_panel(self):
         self.notif_frame = ctk.CTkFrame(self)
@@ -157,6 +190,9 @@ class Main_window(ctk.CTk):
         self.notif_box.grid(row=1, sticky="nesw", columnspan=2, padx=5, pady=5)
 
     def add_notif_entry(self, notif_content):
+        self.after(0, lambda: self.safe_add_notif_entry(notif_content))
+
+    def safe_add_notif_entry(self, notif_content):
         self.notif_box.configure(state="normal")
 
         self.notif_box.insert(index="end", text=(notif_content+"\n"))
@@ -164,8 +200,6 @@ class Main_window(ctk.CTk):
         self.notif_box.see("end")
         self.notif_box.configure(state="disabled")
 
-    def refresh_product_panel(self):
-        pass
 
     def open_add_window(self):
         self.add_window = ctk.CTkToplevel(master=self)
@@ -184,7 +218,7 @@ class Main_window(ctk.CTk):
        # self.add_window.columnconfigure(0, weight=1)
        # self.add_window.columnconfigure(1, weight=1)
 
-        name_label = ctk.CTkLabel(master=self.add_window, text="Nazwa")
+        name_label = ctk.CTkLabel(master=self.add_window, text="Nazwa:")
         name_label.grid(row=0, column=0, sticky="w", padx=10, pady=10)
 
         self.name_entry = ctk.CTkEntry(master=self.add_window, width=100)
@@ -213,21 +247,164 @@ class Main_window(ctk.CTk):
         store_config = self.store_registry.detect_store_from_url(url)
 
         if not url:
-            self.add_notif_entry("[BŁĄD] Pole URL nie może być puste")
+            CTkMessagebox(title="Błędne dane", message="Pole URL jest wymagane!")
             return
 
         if not store_config:
-            self.add_notif_entry("[BŁĄD] Nie rozpoznano sklepu dla podanego URL")
+            CTkMessagebox(title="Błąd", message="Nie rozpoznano sklepu dla podanego URL")
             return
 
         new_product = Product(id=Product.generate_id(), name=name, url=url, store=store_config.name, selector=store_config.selector,
                               check_interval=3600, alert_threshold=float(threshold) if threshold else 0.0)    # check_interval -------------------------------------------
 
         self.repo.save_product(new_product)
-        self.add_product_entry(new_product.get_table_row())
+        self.add_product_entry(new_product)
         self.add_notif_entry(f"[SYSTEM] Dodano produkt: {name}")
 
         self.add_window.destroy()
+
+    def open_edit_window(self):
+        selected_product_entry = self.product_tree.selection()
+
+        if not selected_product_entry:
+            CTkMessagebox(title="Wybierz produkt", message="Nie zaznaczono produktu do edycji!")
+            return
+
+        self.editing_product_id = selected_product_entry[0]
+        product = self.repo.get_product_by_id(self.editing_product_id)
+        product_name = product.name
+        url = product.url
+        threshold = product.alert_threshold
+
+
+        self.edit_window = ctk.CTkToplevel(self)
+        self.edit_window.title("Edytowanie Produktu")
+        self.edit_window.geometry("520x200")
+
+        self.edit_window.transient(self)
+        self.edit_window.grab_set()
+        self.edit_window.focus()
+
+        name_label = ctk.CTkLabel(master=self.edit_window, text="Nazwa produktu:")
+        name_label.grid(row=0, column=0, sticky="e", padx=10, pady=10)
+
+        self.edit_name_entry = ctk.CTkEntry(master=self.edit_window, width=200)
+        self.edit_name_entry.insert(0, product_name)
+        self.edit_name_entry.grid(row=0, column=1, sticky="w")
+
+        threshold_label = ctk.CTkLabel(master=self.edit_window, text="Próg alarmowy:")
+        threshold_label.grid(row=1, column=0, sticky="e", padx=10, pady=10)
+
+        self.edit_threshold_entry = ctk.CTkEntry(master=self.edit_window, width=200)
+        self.edit_threshold_entry.insert(0, threshold)
+        self.edit_threshold_entry.grid(row=1, column=1, sticky="w")
+
+        url_label = ctk.CTkLabel(master=self.edit_window, text="URL:")
+        url_label.grid(row=2, column=0, sticky="e", padx=10, pady=10)
+
+        self.edit_url_entry = ctk.CTkEntry(master=self.edit_window, width=400)
+        self.edit_url_entry.insert(0, url)
+        self.edit_url_entry.grid(row=2, column=1, sticky="w")
+
+        self.save_edited_product_button = ctk.CTkButton(master=self.edit_window, text="Zapisz", command=self.save_edited_product)
+        self.save_edited_product_button.grid(row=3, columnspan=2)
+
+    def save_edited_product(self):
+        new_name = self.edit_name_entry.get()
+        new_threshold = self.edit_threshold_entry.get()
+        new_url = self.edit_url_entry.get()
+
+        if not new_url:
+            CTkMessagebox(title="Błędne dane", message="Pole URL nie może być puste!")
+            return
+
+        store_config = self.store_registry.detect_store_from_url(new_url)
+        if not store_config:
+            CTkMessagebox(title="Błąd rozpoznania sklepu", message="Nie rozpoznano sklepu dla podanego URL!")
+            return
+
+        old_product = self.repo.get_product_by_id(self.editing_product_id)
+        if not old_product:
+            CTkMessagebox(title="Produkt nie istnieje", message="Edytowany produkt nie istnieje w bazie danych!")
+            return
+
+        edited_product = Product(
+            id=old_product.id,
+            name=new_name,
+            url=new_url,
+            store=store_config.name,
+            selector=store_config.selector,
+            check_interval=old_product.check_interval,
+            alert_threshold=float(new_threshold) if new_threshold else 0.0,
+            add_time=old_product.add_time,
+            price_history=old_product.price_history
+        )
+
+        self.repo.save_product(edited_product)
+        self.refresh_product_entries()
+
+        logger.info(f"Pomyślnie zaktualizowano produkt (ID: {old_product.id}, Nazwa: {edited_product.name})")
+
+        self.edit_window.destroy()
+
+
+    def delete_selected_product(self):
+        selected_product_entry = self.product_tree.selection()
+
+        if selected_product_entry:
+            product_id = selected_product_entry[0]
+            product_name = self.product_tree.item(product_id, "values")[0]
+
+            if self.repo.delete_product(product_id):
+                self.product_tree.delete(product_id)
+
+                logger.info(f"Pomyślnie usunięto produkt: {product_name} | id: {product_id}")
+            else:
+                logger.info(f"Niepowodzenie przy próbie usunięcia produktu: {product_name} | id: {product_id}")
+                CTkMessagebox(title="Błąd", message=f"Nie udało się usunąć produktu:\n{product_name}")
+        else:
+            CTkMessagebox(title="Nie wybrano produktu", message="Nie wybrano żadnego produktu do usunięcia!")
+
+    def check_all_products(self):
+        products = self.repo.get_all_products()
+        if not products:
+            CTkMessagebox(title="Błąd", message="Brak produktów do sprawdzenia!")
+            return
+
+        self.monitor.check_all_products(notif_func=self.add_notif_entry)
+        self.refresh_product_entries()
+
+    def start_checking_loop(self):
+        check_interval = self.interval_entry.get().strip()
+
+        if not check_interval:
+            CTkMessagebox(title="Brakujące dane", message="Nie podano wartości interwału")
+            return
+
+        try:
+            check_interval = float(check_interval)
+
+            if check_interval <= 0:
+                CTkMessagebox(title="Błęde dane", message="Wartość interwału musi być dodatnia")
+                return
+        except ValueError:
+            CTkMessagebox(title="Błędne dane", message="Wartość interwału musi być liczbą dodatnią")
+            return
+
+        if hasattr(self, "is_monitoring") and self.is_monitoring:
+            self.is_monitoring = False
+            self.start_button.configure(text="Start", fg_color=["#3a7ebf", "#1f538d"])
+            return
+
+        self.is_monitoring = True
+        self.start_button.configure(text="Stop", fg_color="crimson")
+
+        def worker_loop():
+            while self.is_monitoring:
+                self.check_all_products()
+                time.sleep(check_interval)
+
+        threading.Thread(target=worker_loop, daemon=True).start()
 
 
 if __name__ == "__main__":

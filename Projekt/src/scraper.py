@@ -38,11 +38,13 @@ class Scraper:
                 elif "£" in full_text_upper or "GBP" in full_text_upper:
                     currency = "GBP"
 
-                price_reg = re.search(r"(\d+[\s\u00A0]*\d*[,.]\d{2}|\d+)", full_text)
+                no_space_text = full_text.replace(" ", "").replace("\u00A0", "")
+
+                price_reg = re.search(r"(\d+[,.]\d{2}|\d+)", no_space_text)
 
                 if price_reg:
                     full_price = price_reg.group(1)
-                    clean_price = full_price.replace(" ", "").replace(",", ".")
+                    clean_price = full_price.replace(",", ".")
 
                     return PriceRecord(float(clean_price), currency)
         except requests.exceptions.RequestException as e:
