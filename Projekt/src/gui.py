@@ -4,7 +4,7 @@ import threading
 import customtkinter as ctk
 from tkinter import ttk, filedialog
 import logging
-from Projekt.src.stores import StoreRegistry
+from stores import StoreRegistry
 from repository import JsonRepository
 from scraper import Scraper
 from models import Product, PriceRecord
