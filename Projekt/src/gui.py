@@ -1,7 +1,8 @@
+import json
 import time
 import threading
 import customtkinter as ctk
-from tkinter import ttk
+from tkinter import ttk, filedialog
 import logging
 from Projekt.src.stores import StoreRegistry
 from repository import JsonRepository
@@ -57,6 +58,11 @@ class Main_window(ctk.CTk):
         self.stores_button = ctk.CTkButton(master=self.action_buttons_frame, text="Sklepy", height=28, width=40, command=self.open_stores_window)
         self.stores_button.pack(padx=5, side="left")
 
+        self.export_button = ctk.CTkButton(master=self.action_buttons_frame, text ="Eksport", height=28, width=40, command=self.export_data)
+        self.export_button.pack(padx=5, side="left")
+
+        self.import_button = ctk.CTkButton(master=self.action_buttons_frame, text="Import", height=28, width=40,command=self.import_data)
+        self.import_button.pack(padx=5, side="left")
         # FILTRY
         self.filter_frame = ctk.CTkFrame(self)
         self.filter_frame.grid(row=1, column=0, columnspan=2, sticky="nesw")
@@ -600,6 +606,107 @@ class Main_window(ctk.CTk):
             self.stores_refresh(tree)
             form.destroy()
         ctk.CTkButton(form, text="Zapisz", command=save).grid(row=len(fields) + 1, column = 0, columnspan=2, pady=14)
+
+    def export_data(self):
+        path = filedialog.asksaveasfilename(title="Eksportuj dane", defaultextension=".json", filetypes=[("Plik JSON", "*.json"), ("Wszystkie pliki", "*.*")], initialfile="price_monitor_export.json")
+        if not path:
+            return
+        try:
+            products = [p.to_dict() for p in self.repo.get_all_products()]
+            custom_stores = [s.to_dict() for s in self.store_registry.custom.values()]
+
+            export_dict = {
+                "products": products,
+                "custom_stores": custom_stores,
+            }
+
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(export_dict, f, ensure_ascii=False, indent=4)
+
+            total = len(products)
+            total_stores = len(custom_stores)
+
+            self.add_notif_entry(f"Wyeksportowano {total} produktów oraz {total_stores} sklepów do: {path}")
+            CTkMessagebox(title="Eksport zakończony", message=f"Pomyślnie wykesportowano {total} produktów oraz {total_stores} sklepów")
+        except Exception as e:
+            logger.error(f"Błąd eksportu: {e}")
+            CTkMessagebox(title="Błąd eksportu", message="Nie udało się wyeksportować danych.")
+
+    def import_data(self):
+        path = filedialog.askopenfilename(title="Importuj dane", filetypes=[("Plik JSON", "*.json"), ("Wszystkie pliki", "*.*")])
+        if not path:
+            return
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception as e:
+            CTkMessagebox(title="Błąd odczytu", message="Nie udało się wczytać pliku z danymi.")
+            return
+        raw_products = data.get("products", [])
+        raw_stores = data.get("custom_stores", [])
+
+        if not raw_products and not raw_stores:
+            CTkMessagebox(title="Pusty plik", message="Brak danych do importu w podanym pliku")
+            return
+
+        mode_win = ctk.CTkToplevel(self)
+        mode_win.title("Opcje importu")
+        mode_win.geometry("480x300")
+        mode_win.transient(self)
+        mode_win.grab_set()
+        mode_win.focus()
+        ctk.CTkLabel(mode_win, text=f"Znaleziono {len(raw_products)} produktów oraz {len(raw_stores)} sklepów. Wybierz opcje importu.", wraplength=480, pady=10).pack()
+        merge_var = ctk.StringVar(value="merge")
+        ctk.CTkRadioButton(mode_win, text = "Scal z istniejącymi danymi.", variable=merge_var, value="merge").pack(anchor="w", padx=20, pady=4)
+        ctk.CTkRadioButton(mode_win, text = "Zastąp istniejące dane", variable=merge_var,value="replace").pack(anchor="w", padx=20, pady=4)
+
+        def do_import():
+            mode = merge_var.get()
+            mode_win.destroy()
+            self.apply_import(raw_products, raw_stores, mode)
+
+        ctk.CTkButton(mode_win, text="Importuj", command=do_import).pack(pady=14)
+
+    def apply_import(self, raw_products, raw_stores, mode):
+        from stores import StoreConfig
+
+        imported_products = 0
+        skipped_products = 0
+        imported_stores = 0
+
+        try:
+            if mode == "replace":
+                for p in self.repo.get_all_products():
+                    self.repo.delete_product(p.id)
+                for s in list(self.store_registry.custom.keys()):
+                    self.store_registry.delete_custom(s)
+
+            for s_data in raw_stores:
+                store = StoreConfig.from_dict(s_data)
+                store.builtin=False
+                existing = self.store_registry.get_by_name(store.name)
+                if mode == "merge" and existing and not existing.builtin:
+                    pass
+                else:
+                    self.store_registry.custom[store.name] = store
+                    imported_stores += 1
+            if raw_stores:
+                self.store_registry.save_to_json()
+
+            for p_data in raw_products:
+                product = Product.from_dict(p_data)
+                existing = self.repo.get_product_by_id(product.id)
+                if mode == "merge" and existing:
+                    skipped_products += 1
+                    continue
+                self.repo.save_product(product)
+                imported_products += 1
+            self.refresh_product_entries()
+            self.add_notif_entry(f"Zaimportowano {imported_products} produktów ({skipped_products} pominięto) oraz {imported_stores} sklepów własnych.")
+            CTkMessagebox(title="Import zakończony", message=f"Zaimportowano {imported_products} produktów ({skipped_products} pominięto) oraz {imported_stores} sklepów własnych.")
+        except Exception as e:
+            logger.error(f"Błąd importu: {e}")
+            CTkMessagebox(title="Błąd importu", message="Nie udało się zaimportować danych")
 
 
 if __name__ == "__main__":
