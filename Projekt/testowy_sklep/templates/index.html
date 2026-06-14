@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScrapeShop – Testowy Sklep</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3350;
+      --accent: #4f8ef7;
+      --accent2: #a78bfa;
+      --green: #22c55e;
+      --red: #ef4444;
+      --orange: #f97316;
+      --text: #e8eaf0;
+      --muted: #8b91a8;
+      --font-mono: 'Courier New', monospace;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+    }
+
+    .logo span { color: var(--accent2); }
+
+    .badge {
+      background: var(--accent);
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      list-style: none;
+      margin-left: auto;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    /* HERO / INFO BAR */
+    .info-bar {
+      background: linear-gradient(90deg, #1e2a4a, #1a2035);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .info-bar .highlight {
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+
+    .pulse {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    /* MAIN LAYOUT */
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    /* FILTERS */
+    .filters {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-label { color: var(--muted); font-size: 0.8rem; }
+
+    .filter-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.4rem 1rem;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    .refresh-btn {
+      margin-left: auto;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.4rem 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .refresh-btn:hover { background: var(--border); }
+
+    /* GRID */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.25rem;
+    }
+
+    /* CARD */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s;
+      position: relative;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+    }
+
+    .card-img {
+      background: var(--surface2);
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-body { padding: 1rem; }
+
+    .card-kategoria {
+      font-size: 0.7rem;
+      color: var(--accent2);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+
+    .card-nazwa {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+      line-height: 1.3;
+      text-decoration: none;
+      display: block;
+    }
+
+    .card-nazwa:hover { color: var(--accent); }
+
+    .card-cena-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .cena {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text);
+      font-family: var(--font-mono);
+    }
+
+    .cena-baza {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+
+    .zmiana {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+    }
+
+    .zmiana.up   { background: rgba(34,197,94,0.15);  color: var(--green); }
+    .zmiana.down { background: rgba(239,68,68,0.15);  color: var(--red); }
+    .zmiana.flat { background: rgba(139,145,168,0.15); color: var(--muted); }
+
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+    }
+
+    .dostepnosc {
+      font-weight: 600;
+    }
+    .dostepnosc.ok     { color: var(--green); }
+    .dostepnosc.malo   { color: var(--orange); }
+    .dostepnosc.brak   { color: var(--red); }
+
+    .ocena { color: var(--muted); }
+    .ocena span { color: #fbbf24; }
+
+    /* CHANGE BADGE */
+    .change-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+
+    /* API DOCS */
+    .api-section {
+      margin-top: 3rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .api-header {
+      background: var(--surface2);
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.875rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .api-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+
+    .api-endpoint {
+      padding: 1.25rem 1.5rem;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .api-endpoint:nth-child(even) { border-right: none; }
+    .api-endpoint:nth-last-child(-n+2) { border-bottom: none; }
+
+    .method {
+      display: inline-block;
+      background: var(--green);
+      color: #000;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+    }
+
+    .endpoint-url {
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      color: var(--accent);
+      margin-bottom: 0.4rem;
+    }
+
+    .endpoint-desc {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border);
+      margin-top: 3rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Scrape<span>Shop</span></div>
+  <span class="badge">Test Sandbox</span>
+  <nav>
+    <ul class="nav-links">
+      <li><a href="/">Sklep</a></li>
+      <li><a href="/api/produkty" target="_blank">API JSON</a></li>
+    </ul>
+  </nav>
+</header>
+
+<div class="info-bar">
+  <span class="pulse"></span>
+  <span>Ceny zmieniają się przy <span class="highlight">każdym odświeżeniu strony</span></span>
+  <span>•</span>
+  <span>Zakres zmiany: <span class="highlight">±30%</span> od ceny bazowej</span>
+  <span>•</span>
+  <span>Endpointy HTML + JSON API dostępne</span>
+</div>
+
+<div class="container">
+
+  <div class="filters">
+    <span class="filter-label">Kategoria:</span>
+    <button class="filter-btn active" onclick="filtruj(this, 'all')">Wszystkie</button>
+    {% for kat in kategorie %}
+    <button class="filter-btn" onclick="filtruj(this, '{{ kat }}')">{{ kat }}</button>
+    {% endfor %}
+    <button class="refresh-btn" onclick="location.reload()">
+      ↻ Odśwież ceny
+    </button>
+  </div>
+
+  <div class="grid" id="grid">
+    {% for p in produkty %}
+    <div class="card" data-kategoria="{{ p.kategoria }}">
+      <div class="card-img">{{ p.img }}</div>
+      <div class="change-badge">
+        {% if p.zmiana_procent > 0 %}
+          <span class="zmiana up">▲ {{ p.zmiana_procent }}%</span>
+        {% elif p.zmiana_procent < 0 %}
+          <span class="zmiana down">▼ {{ p.zmiana_procent | abs }}%</span>
+        {% else %}
+          <span class="zmiana flat">— 0%</span>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        <div class="card-kategoria">{{ p.kategoria }}</div>
+        <a href="/produkt/{{ p.id }}" class="card-nazwa">{{ p.nazwa }}</a>
+        <div class="card-cena-row">
+          <span class="cena" data-price="{{ p.cena }}">{{ "%.2f"|format(p.cena) }} zł</span>
+          <span class="cena-baza">{{ "%.2f"|format(p.cena_baza) }} zł</span>
+        </div>
+        <div class="card-meta">
+          <span class="dostepnosc
+            {% if p.dostepnosc == 'Dostępny' %}ok
+            {% elif p.dostepnosc == 'Mało sztuk' %}malo
+            {% else %}brak{% endif %}">
+            {{ p.dostepnosc }}
+          </span>
+          <span class="ocena"><span>★</span> {{ p.ocena }} ({{ p.ilosc_opinii }})</span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- API DOCS -->
+  <div class="api-section">
+    <div class="api-header">
+      🔌 Endpointy do scrapowania
+    </div>
+    <div class="api-grid">
+      <div class="api-endpoint">
+        <div class="method">GET</div>
+        <div class="endpoint-url">/</div>
+        <div class="endpoint-desc">Strona główna HTML — lista wszystkich produktów z cenami. Ceny losowe przy każdym żądaniu.</div>
+      </div>
+      <div class="api-endpoint">
+        <div class="method">GET</div>
+        <div class="endpoint-url">/produkt/&lt;id&gt;</div>
+        <div class="endpoint-desc">Strona HTML pojedynczego produktu. Nowa losowa cena przy każdym odświeżeniu.</div>
+      </div>
+      <div class="api-endpoint">
+        <div class="method">GET</div>
+        <div class="endpoint-url">/api/produkty</div>
+        <div class="endpoint-desc">JSON z listą wszystkich produktów. Ideal do testowania parsowania JSON.</div>
+      </div>
+      <div class="api-endpoint">
+        <div class="method">GET</div>
+        <div class="endpoint-url">/api/produkt/&lt;id&gt;</div>
+        <div class="endpoint-desc">JSON dla pojedynczego produktu po ID (1–12).</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  ScrapeShop — testowy sklep do ćwiczenia scrapowania cen. Ceny są losowe i fikcyjne.
+</footer>
+
+<script>
+function filtruj(btn, kat) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.card').forEach(card => {
+    if (kat === 'all' || card.dataset.kategoria === kat) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+</script>
+
+</body>
+</html>

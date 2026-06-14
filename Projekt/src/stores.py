@@ -56,7 +56,8 @@ BUILTIN_STORES =[
     StoreConfig("Amazon", "amazon.", "#corePriceDisplay_desktop_feature_div .a-price-whole, .apexPriceToPay .a-price-whole, #price_inside_buybox, .a-price .a-offscreen", builtin=True, currency="EUR"),
     StoreConfig("Books to Scrape", "books.toscrape.com", ".product_main .price_color", builtin=True, currency="GBP"),
     StoreConfig("Morele", "morele.net", ".product-price", builtin=True, currency="PLN"),
-    StoreConfig("Oxylabs Sandbox", "sandbox.oxylabs.io", "div[class*='product-info-wrapper'] div[class*='price']", builtin=True, currency="EUR")
+    StoreConfig("Oxylabs Sandbox", "sandbox.oxylabs.io", "div[class*='product-info-wrapper'] div[class*='price']", builtin=True, currency="EUR"),
+    StoreConfig("localhost", "localhost:5000", "[data-price]", builtin=True, currency="PLN")
 ]
 
 class StoreRegistry:

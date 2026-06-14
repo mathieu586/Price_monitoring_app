@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ p.nazwa }} – ScrapeShop</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a;
+      --border: #2e3350; --accent: #4f8ef7; --accent2: #a78bfa;
+      --green: #22c55e; --red: #ef4444; --orange: #f97316;
+      --text: #e8eaf0; --muted: #8b91a8;
+      --font-mono: 'Courier New', monospace;
+    }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    header {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 0 2rem; display: flex; align-items: center; gap: 1rem; height: 60px;
+    }
+    .logo { font-size: 1.25rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+    .logo span { color: var(--accent2); }
+    .breadcrumb { color: var(--muted); font-size: 0.8rem; }
+    .breadcrumb a { color: var(--accent); text-decoration: none; }
+
+    .container { max-width: 900px; margin: 2rem auto; padding: 0 2rem; }
+
+    .produkt-grid {
+      display: grid; grid-template-columns: 300px 1fr; gap: 2rem;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+    }
+
+    .produkt-img {
+      background: var(--surface2); display: flex; align-items: center; justify-content: center;
+      font-size: 6rem; border-right: 1px solid var(--border);
+    }
+
+    .produkt-info { padding: 2rem; }
+
+    .produkt-kategoria {
+      font-size: 0.75rem; color: var(--accent2); text-transform: uppercase;
+      letter-spacing: 0.5px; font-weight: 600; margin-bottom: 0.5rem;
+    }
+
+    h1 { font-size: 1.5rem; margin-bottom: 1rem; line-height: 1.3; }
+
+    .ocena-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; color: var(--muted); font-size: 0.85rem; }
+    .stars { color: #fbbf24; }
+
+    .cena-big {
+      font-size: 2.5rem; font-weight: 700; font-family: var(--font-mono);
+      color: var(--text); margin-bottom: 0.25rem;
+    }
+
+    .cena-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
+    .cena-baza { color: var(--muted); text-decoration: line-through; font-size: 1rem; font-family: var(--font-mono); }
+
+    .zmiana-tag {
+      padding: 3px 10px; border-radius: 6px; font-size: 0.85rem;
+      font-weight: 700; font-family: var(--font-mono);
+    }
+    .zmiana-tag.up   { background: rgba(34,197,94,0.15); color: var(--green); }
+    .zmiana-tag.down { background: rgba(239,68,68,0.15); color: var(--red); }
+    .zmiana-tag.flat { background: rgba(139,145,168,0.15); color: var(--muted); }
+
+    .dostepnosc-row { margin: 1rem 0; font-size: 0.9rem; }
+    .dostepnosc { font-weight: 600; }
+    .dostepnosc.ok   { color: var(--green); }
+    .dostepnosc.malo { color: var(--orange); }
+    .dostepnosc.brak { color: var(--red); }
+
+    .meta-table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; font-size: 0.85rem; }
+    .meta-table td { padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+    .meta-table td:first-child { color: var(--muted); width: 40%; }
+    .meta-table td:last-child { font-family: var(--font-mono); color: var(--accent); }
+
+    .info-note {
+      margin-top: 1.5rem; padding: 0.75rem 1rem; background: rgba(79,142,247,0.08);
+      border: 1px solid rgba(79,142,247,0.2); border-radius: 8px; font-size: 0.8rem; color: var(--muted);
+    }
+
+    .back-link {
+      display: inline-block; margin-bottom: 1.5rem; color: var(--accent);
+      text-decoration: none; font-size: 0.875rem;
+    }
+    .back-link:hover { text-decoration: underline; }
+
+    footer { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.8rem; border-top: 1px solid var(--border); margin-top: 3rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="/" class="logo">Scrape<span>Shop</span></a>
+  <span style="color:var(--border)">›</span>
+  <span class="breadcrumb"><a href="/">Sklep</a> › {{ p.kategoria }} › {{ p.nazwa }}</span>
+</header>
+
+<div class="container">
+  <a href="/" class="back-link">← Wróć do listy</a>
+
+  <div class="produkt-grid">
+    <div class="produkt-img">{{ p.img }}</div>
+    <div class="produkt-info">
+      <div class="produkt-kategoria">{{ p.kategoria }}</div>
+      <h1 data-product-id="{{ p.id }}">{{ p.nazwa }}</h1>
+
+      <div class="ocena-row">
+        <span class="stars">★★★★☆</span>
+        <span>{{ p.ocena }} / 5.0</span>
+        <span>({{ p.ilosc_opinii }} opinii)</span>
+      </div>
+
+      <div class="cena-big" data-price="{{ p.cena }}">{{ "%.2f"|format(p.cena) }} zł</div>
+      <div class="cena-row">
+        <span class="cena-baza">{{ "%.2f"|format(p.cena_baza) }} zł</span>
+        {% if p.zmiana_procent > 0 %}
+          <span class="zmiana-tag up">▲ +{{ p.zmiana_procent }}%</span>
+        {% elif p.zmiana_procent < 0 %}
+          <span class="zmiana-tag down">▼ {{ p.zmiana_procent }}%</span>
+        {% else %}
+          <span class="zmiana-tag flat">— bez zmian</span>
+        {% endif %}
+      </div>
+
+      <div class="dostepnosc-row">
+        Status: <span class="dostepnosc
+          {% if p.dostepnosc == 'Dostępny' %}ok
+          {% elif p.dostepnosc == 'Mało sztuk' %}malo
+          {% else %}brak{% endif %}">
+          {{ p.dostepnosc }}
+        </span>
+      </div>
+
+      <table class="meta-table">
+        <tr><td>ID produktu</td>    <td>{{ p.id }}</td></tr>
+        <tr><td>Cena aktualna</td>  <td>{{ "%.2f"|format(p.cena) }} zł</td></tr>
+        <tr><td>Cena bazowa</td>    <td>{{ "%.2f"|format(p.cena_baza) }} zł</td></tr>
+        <tr><td>Zmiana [%]</td>     <td>{{ p.zmiana_procent }}%</td></tr>
+        <tr><td>Kategoria</td>      <td>{{ p.kategoria }}</td></tr>
+        <tr><td>Timestamp</td>      <td>{{ p.timestamp }}</td></tr>
+      </table>
+
+      <div class="info-note">
+        ℹ️ Cena na tej stronie jest losowana przy <strong>każdym żądaniu HTTP</strong>.
+        Odśwież stronę lub odpytaj endpoint <code>/api/produkt/{{ p.id }}</code> by zobaczyć nową wartość.
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>ScrapeShop — testowy sklep do ćwiczenia scrapowania cen.</footer>
+</body>
+</html>
