@@ -12,7 +12,6 @@ DEFAULT_SELECTORS =[
     "[data-price]",
     ".product-price",
     ".price-box .price",
-    ".price .amount",
     ".offer-price",
     ".current-price",
     ".price-current",

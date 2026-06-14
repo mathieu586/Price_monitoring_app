@@ -54,8 +54,8 @@ class Main_window(ctk.CTk):
         self.history_button = ctk.CTkButton(master=self.action_buttons_frame, text="Historia", height=28, width=40, command=self.open_history_window)
         self.history_button.pack(padx=5, side="left")
 
-        self.shops_button = ctk.CTkButton(master=self.action_buttons_frame, text="Sklepy", height=28, width=40)
-        self.shops_button.pack(padx=5, side="left")
+        self.stores_button = ctk.CTkButton(master=self.action_buttons_frame, text="Sklepy", height=28, width=40, command=self.open_stores_window)
+        self.stores_button.pack(padx=5, side="left")
 
         # FILTRY
         self.filter_frame = ctk.CTkFrame(self)
@@ -152,7 +152,6 @@ class Main_window(ctk.CTk):
     def safe_refresh_product_entries(self):
         self.clear_product_entries()
         all_products = self.repo.get_all_products()
-
         sort_mode = self.filter_var.get()
 
 
@@ -262,6 +261,7 @@ class Main_window(ctk.CTk):
         self.add_notif_entry(f"[SYSTEM] Dodano produkt: {name}")
 
         self.add_window.destroy()
+
 
     def open_edit_window(self):
         selected_product_entry = self.product_tree.selection()
@@ -411,7 +411,7 @@ class Main_window(ctk.CTk):
         selected_product_entry = self.product_tree.selection()
 
         if not selected_product_entry:
-            CTkMessagebox(title="Wybierz produkt", message="Nie zaznaczono produktu do edycji!")
+            CTkMessagebox(title="Wybierz produkt", message="Nie zaznaczono produktu!")
             return
 
         product_id = selected_product_entry[0]
@@ -422,7 +422,7 @@ class Main_window(ctk.CTk):
 
         self.history_window = ctk.CTkToplevel(self)
         self.history_window.title(f"Historia cen - {product.name}")
-        self.history_window.geometry("520x200")
+        self.history_window.geometry("800x600")
 
         self.history_window.transient(self)
         self.history_window.grab_set()
@@ -457,10 +457,149 @@ class Main_window(ctk.CTk):
         tree.column("Status", width=120,anchor="center")
 
         for record in reversed(product.price_history):
+            if record is None:
+                continue
             tree.insert("", "end", values=(record.timestamp.strftime("%Y-%m-%d %H:%M"), record.price, record.currency, "Tak" if record.available else "Nie", record.status.value))
 
         scroll.pack(side="right", fill="y")
         tree.pack(expand=True, fill="both")
+
+
+    def open_stores_window(self):
+        self.stores_window = ctk.CTkToplevel(self)
+        self.stores_window.title("Zarządzanie sklepami")
+        self.stores_window.geometry("800x480")
+        self.stores_window.transient(self)
+        self.stores_window.grab_set()
+        self.stores_window.focus()
+
+        self.stores_window.rowconfigure(1, weight=1)
+        self.stores_window.columnconfigure(0, weight=1)
+
+        toolbar = ctk.CTkFrame(self.stores_window)
+        toolbar.grid(row=0, column=0, sticky="ew", padx=8, pady=(8,0))
+
+        add_store_button = ctk.CTkButton(toolbar, text = "Dodaj", width=80, command=lambda: self.open_store_form(self.stores_window, stores_tree, None))
+        edit_store_button = ctk.CTkButton(toolbar, text = "Edytuj", width=80, command=lambda: self.edit_selected_store(self.stores_window, stores_tree))
+        del_store_button = ctk.CTkButton(toolbar, text = "Usuń", width=80, command=lambda: self.delete_selected_store(stores_tree))
+
+        add_store_button.pack(side="left", padx = 4)
+        edit_store_button.pack(side="left", padx = 4)
+        del_store_button.pack(side="left", padx = 4)
+
+        info_builtin = ctk.CTkLabel(toolbar, text="Nie można edytować ani usuwać wbudowanych sklepów.", text_color="gray")
+        info_builtin.pack(side="top")
+
+        frame = ctk.CTkFrame(self.stores_window)
+        frame.grid(row=1, column=0, sticky="nesw", padx=8, pady=8)
+        frame.rowconfigure(0, weight=1)
+        frame.columnconfigure(0, weight=1)
+
+        cols = ("Nazwa", "Domena", "Waluta", "Selektor", "Typ")
+        stores_tree = ttk.Treeview(frame, columns=cols, show="headings")
+        scroll = ctk.CTkScrollbar(frame, command=stores_tree.yview)
+        stores_tree.configure(yscrollcommand=scroll.set)
+
+        stores_tree.heading("Nazwa", text="Nazwa")
+        stores_tree.heading("Domena", text="Domena")
+        stores_tree.heading("Waluta", text="Waluta")
+        stores_tree.heading("Selektor", text="Selektor")
+        stores_tree.heading("Typ", text="Typ")
+
+        stores_tree.column("Nazwa", width=120,anchor="w")
+        stores_tree.column("Domena", width=150,anchor="w")
+        stores_tree.column("Waluta", width=60,anchor="center")
+        stores_tree.column("Selektor", width=320,anchor="w")
+        stores_tree.column("Typ", width=80,anchor="center")
+
+        scroll.pack(side="right", fill="y")
+        stores_tree.pack(expand=True, fill="both")
+
+        self.stores_refresh(stores_tree)
+
+    def stores_refresh(self, tree):
+        for item in tree.get_children():
+            tree.delete(item)
+        for store in self.store_registry.get_all():
+            typ = "wbudowany" if store.builtin else "własny"
+            tree.insert("", "end", iid = store.name, values=(store.name, store.domain, store.currency, store.selector if store.selector else "domyślny", typ))
+
+    def edit_selected_store(self, win, tree):
+        selected = tree.selection()
+        if not selected:
+            CTkMessagebox(title="Nie wybrano sklepu", message="Nie wybrano żadnego sklepu do edycji!")
+            return
+        store = self.store_registry.get_by_name(selected[0])
+        if store and store.builtin:
+            CTkMessagebox(title="Brak dostępu", message="Nie można edytować wbudowanych sklepów")
+            return
+        self.open_store_form(win, tree, store)
+
+    def delete_selected_store(self, tree):
+        selected = tree.selection()
+        if not selected:
+            CTkMessagebox(title="Nie wybrano sklepu", message="Nie wybrano żadnego sklepu do usunięcia")
+            return
+        store = self.store_registry.get_by_name(selected[0])
+        if store and store.builtin:
+            CTkMessagebox(title="Brak dostępu", message="Nie można usuwać wbudowanych sklepów")
+            return
+        if self.store_registry.delete_custom(selected[0]):
+            tree.delete(selected[0])
+        else:
+            CTkMessagebox(title="Błąd", message="Nie udało się usunąć sklepu")
+
+    def open_store_form(self, parent_win, tree, store):
+        is_edit = store is not None
+        form = ctk.CTkToplevel(parent_win)
+        form.title("Edytuj sklep" if is_edit else "Dodaj sklep")
+        form.geometry("480x300")
+        form.transient(parent_win)
+        form.grab_set()
+        form.focus()
+
+        fields = [("Nazwa:", 80), ("Domena:", 80), ("Waluta:", 80), ("Selektor CSS:", 320), ("Uwagi:", 80)]
+        entries = {}
+
+        defaults = {
+            "Nazwa": store.name if is_edit else "",
+            "Domena": store.domain if is_edit else "",
+            "Waluta": store.currency if is_edit else "",
+            "Selektor CSS": store.selector if (is_edit and store.selector) else "",
+            "Uwagi": store.notes if is_edit else "",
+        }
+
+        for i, (label, width) in enumerate(fields):
+            ctk.CTkLabel(form, text=label, anchor="e", width=100).grid(row=i, column = 0, sticky="e",padx=8,pady=6)
+            e = ctk.CTkEntry(form, width = width if  width > 100 else 200)
+            e.insert(0, defaults[label.rstrip(":")])
+            e.grid(row=i, column = 1, sticky="w", pady=6)
+            entries[label.rstrip(":")] = e
+
+        hint = ctk.CTkLabel(form, text="Jeśli pole 'Selektor CSS' pozostanie puste, wykorzystane zostaną domyślne selektory. Nie gwarantują one poprawności działania.", wraplength=370, text_color="red", anchor="w", justify="left")
+        hint.grid(row = len(fields), column=0, columnspan=2, sticky="w", padx=(0,10),pady=(0,6))
+
+        def save():
+            from stores import StoreConfig
+            name = entries["Nazwa"].get().strip()
+            domain = entries["Domena"].get().strip()
+            currency = entries["Waluta"].get().strip() or "PLN"
+            selector = entries["Selektor CSS"].get().strip() or None
+            notes = entries["Uwagi"].get().strip()
+
+            if not name or not domain:
+                CTkMessagebox(title="Błąd", message="Nazwa i domena są wymagane.")
+                return
+            new_store = StoreConfig(name, domain, selector, currency, notes, builtin=False)
+
+            if is_edit:
+                self.store_registry.update_custom(new_store)
+            else:
+                self.store_registry.add_custom(new_store)
+
+            self.stores_refresh(tree)
+            form.destroy()
+        ctk.CTkButton(form, text="Zapisz", command=save).grid(row=len(fields) + 1, column = 0, columnspan=2, pady=14)
 
 
 if __name__ == "__main__":

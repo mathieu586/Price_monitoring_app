@@ -91,7 +91,6 @@ class Product:
     def get_stats(self):
         good_records = [record for record in self.price_history if record.available and record.status == Status.OK]
         prices = [record.price for record in good_records]
-
         current_record = self.current_pricerecord()
         current_price = current_record.price if current_record and current_record.available else None
         currency = current_record.currency if current_record else "PLN"
@@ -142,7 +141,8 @@ class Product:
                       check_interval = d.get("check_interval"),
                       )
         for record in d.get("price_history", []):
-            product.price_history.append(PriceRecord.from_dict(record))
+            if record is not None:
+                product.price_history.append(PriceRecord.from_dict(record))
 
         return product
 
@@ -152,10 +152,10 @@ class Product:
         return (
             self.name,
             self.store,
-            f"{stats.current_price or 0.0} {stats.currency}",
-            f"{stats.best_price or 0.0}",
-            f"{stats.change_percentage or 0.0}%",
-            f"{stats.avg_price or 0.0}",
+            f"{stats.current_price or 0.0:.2f} {stats.currency}",
+            f"{stats.best_price or 0.0:.2f}",
+            f"{stats.change_percentage or 0.0:.2f}%",
+            f"{stats.avg_price or 0.0:.2f}",
             stats.total_checks,
             stats.last_status.value,
             stats.last_checked.strftime("%Y-%m-%d %H:%M") if stats.last_checked else "N/A"
