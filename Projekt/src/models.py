@@ -89,7 +89,7 @@ class Product:
         return self.price_history[-1]
 
     def get_stats(self):
-        good_records = [record for record in self.price_history if record.available and record.status == Status.OK]
+        good_records = [record for record in self.price_history if record.available and record.status.value == "ok"]
         prices = [record.price for record in good_records]
         current_record = self.current_pricerecord()
         current_price = current_record.price if current_record and current_record.available else None

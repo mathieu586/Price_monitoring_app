@@ -44,6 +44,13 @@ class Scraper:
 
     def fetch_price(self, product):
         logger.info(f"Pobieranie ceny dla {product.name} ({product.url})")
+
+        # kod do testowania zmian cen
+        #import random
+        #fake_price = round(random.uniform(500.0, 1000.0), 2)
+        #return PriceRecord(price=fake_price, currency="PLN")
+        # =====================================================
+
         try:
             response = requests.get(product.url, headers=self.headers, timeout=10)
 
@@ -77,6 +84,7 @@ class Scraper:
                 if result:
                     price, currency = result
                     logger.info(f"Znaleziono cenę przy użyciu domyślnego selektora {selector}.")
+
                     return PriceRecord(price, currency)
 
             logger.warning(f"Żaden domyślny selektor nie dopasował ceny")
