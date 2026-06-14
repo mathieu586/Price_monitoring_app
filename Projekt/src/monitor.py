@@ -31,4 +31,4 @@ class PriceMonitor:
 
         for product in products:
             self.check_product(product, notif_func)
-            time.sleep(1)
+            time.sleep(3)

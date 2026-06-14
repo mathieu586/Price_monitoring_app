@@ -58,6 +58,9 @@ class Main_window(ctk.CTk):
         self.stores_button = ctk.CTkButton(master=self.action_buttons_frame, text="Sklepy", height=28, width=40, command=self.open_stores_window)
         self.stores_button.pack(padx=5, side="left")
 
+        self.check_single_button = ctk.CTkButton(master=self.action_buttons_frame, text="Sprawdź cene", height=28, width=60, command=self.check_single_product)
+        self.check_single_button.pack(padx=5, side="left")
+
         self.export_button = ctk.CTkButton(master=self.action_buttons_frame, text ="Eksport", height=28, width=40, command=self.export_data)
         self.export_button.pack(padx=5, side="left")
 
@@ -188,7 +191,7 @@ class Main_window(ctk.CTk):
         self.notif_label = ctk.CTkLabel(master=self.notif_frame, text="Powiadomienia", padx=12, pady=5, font=("Arial", 20))
         self.notif_label.grid(row=0, column=0, sticky="w")
 
-        self.clear_button = ctk.CTkButton(master=self.notif_frame, text="Wyczyść")
+        self.clear_button = ctk.CTkButton(master=self.notif_frame, text="Wyczyść", command=self.clear_notifications)
         self.clear_button.grid(row=0, column=1, sticky="e", padx=5)
 
         self.notif_box = ctk.CTkTextbox(master=self.notif_frame, state="disabled")
@@ -205,6 +208,10 @@ class Main_window(ctk.CTk):
         self.notif_box.see("end")
         self.notif_box.configure(state="disabled")
 
+    def clear_notifications(self):
+        self.notif_box.configure(state="normal")
+        self.notif_box.delete("1.0", "end")
+        self.notif_box.configure(state="disabled")
 
     def open_add_window(self):
         self.add_window = ctk.CTkToplevel(master=self)
@@ -370,6 +377,19 @@ class Main_window(ctk.CTk):
                 CTkMessagebox(title="Błąd", message=f"Nie udało się usunąć produktu:\n{product_name}")
         else:
             CTkMessagebox(title="Nie wybrano produktu", message="Nie wybrano żadnego produktu do usunięcia!")
+
+    def check_single_product(self):
+        selected_product_entry = self.product_tree.selection()
+
+        if selected_product_entry:
+            product_id = selected_product_entry[0]
+            product = self.repo.get_product_by_id(product_id)
+
+            self.monitor.check_product(product, notif_func=self.add_notif_entry)
+            self.refresh_product_entries()
+        else:
+            CTkMessagebox(title="Wybierz produkt", message="Nie wybrano żadnego produktu!")
+            return
 
     def check_all_products(self):
         products = self.repo.get_all_products()
@@ -608,7 +628,9 @@ class Main_window(ctk.CTk):
         ctk.CTkButton(form, text="Zapisz", command=save).grid(row=len(fields) + 1, column = 0, columnspan=2, pady=14)
 
     def export_data(self):
-        path = filedialog.asksaveasfilename(title="Eksportuj dane", defaultextension=".json", filetypes=[("Plik JSON", "*.json"), ("Wszystkie pliki", "*.*")], initialfile="price_monitor_export.json")
+        path = filedialog.asksaveasfilename(title="Eksportuj dane", defaultextension=".json",
+                                            filetypes=[("Plik JSON", "*.json"), ("Wszystkie pliki", "*.*")],
+                                            initialfile="price_monitor_export.json")
         if not path:
             return
         try:
@@ -627,13 +649,15 @@ class Main_window(ctk.CTk):
             total_stores = len(custom_stores)
 
             self.add_notif_entry(f"Wyeksportowano {total} produktów oraz {total_stores} sklepów do: {path}")
-            CTkMessagebox(title="Eksport zakończony", message=f"Pomyślnie wykesportowano {total} produktów oraz {total_stores} sklepów")
+            CTkMessagebox(title="Eksport zakończony",
+                          message=f"Pomyślnie wykesportowano {total} produktów oraz {total_stores} sklepów")
         except Exception as e:
             logger.error(f"Błąd eksportu: {e}")
             CTkMessagebox(title="Błąd eksportu", message="Nie udało się wyeksportować danych.")
 
     def import_data(self):
-        path = filedialog.askopenfilename(title="Importuj dane", filetypes=[("Plik JSON", "*.json"), ("Wszystkie pliki", "*.*")])
+        path = filedialog.askopenfilename(title="Importuj dane",
+                                          filetypes=[("Plik JSON", "*.json"), ("Wszystkie pliki", "*.*")])
         if not path:
             return
         try:
@@ -655,10 +679,14 @@ class Main_window(ctk.CTk):
         mode_win.transient(self)
         mode_win.grab_set()
         mode_win.focus()
-        ctk.CTkLabel(mode_win, text=f"Znaleziono {len(raw_products)} produktów oraz {len(raw_stores)} sklepów. Wybierz opcje importu.", wraplength=480, pady=10).pack()
+        ctk.CTkLabel(mode_win,
+                     text=f"Znaleziono {len(raw_products)} produktów oraz {len(raw_stores)} sklepów. Wybierz opcje importu.",
+                     wraplength=480, pady=10).pack()
         merge_var = ctk.StringVar(value="merge")
-        ctk.CTkRadioButton(mode_win, text = "Scal z istniejącymi danymi.", variable=merge_var, value="merge").pack(anchor="w", padx=20, pady=4)
-        ctk.CTkRadioButton(mode_win, text = "Zastąp istniejące dane", variable=merge_var,value="replace").pack(anchor="w", padx=20, pady=4)
+        ctk.CTkRadioButton(mode_win, text="Scal z istniejącymi danymi.", variable=merge_var, value="merge").pack(
+            anchor="w", padx=20, pady=4)
+        ctk.CTkRadioButton(mode_win, text="Zastąp istniejące dane", variable=merge_var, value="replace").pack(
+            anchor="w", padx=20, pady=4)
 
         def do_import():
             mode = merge_var.get()
@@ -683,7 +711,7 @@ class Main_window(ctk.CTk):
 
             for s_data in raw_stores:
                 store = StoreConfig.from_dict(s_data)
-                store.builtin=False
+                store.builtin = False
                 existing = self.store_registry.get_by_name(store.name)
                 if mode == "merge" and existing and not existing.builtin:
                     pass
@@ -702,8 +730,10 @@ class Main_window(ctk.CTk):
                 self.repo.save_product(product)
                 imported_products += 1
             self.refresh_product_entries()
-            self.add_notif_entry(f"Zaimportowano {imported_products} produktów ({skipped_products} pominięto) oraz {imported_stores} sklepów własnych.")
-            CTkMessagebox(title="Import zakończony", message=f"Zaimportowano {imported_products} produktów ({skipped_products} pominięto) oraz {imported_stores} sklepów własnych.")
+            self.add_notif_entry(
+                f"Zaimportowano {imported_products} produktów ({skipped_products} pominięto) oraz {imported_stores} sklepów własnych.")
+            CTkMessagebox(title="Import zakończony",
+                          message=f"Zaimportowano {imported_products} produktów ({skipped_products} pominięto) oraz {imported_stores} sklepów własnych.")
         except Exception as e:
             logger.error(f"Błąd importu: {e}")
             CTkMessagebox(title="Błąd importu", message="Nie udało się zaimportować danych")
