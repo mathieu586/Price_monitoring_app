@@ -1,7 +1,7 @@
 import json
 import logging
 from pathlib import Path
-from file_security import check_readable, check_writable
+from src.file_security import check_readable, check_writable
 
 logger = logging.getLogger(__name__)
 

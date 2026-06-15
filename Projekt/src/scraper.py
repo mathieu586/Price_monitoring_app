@@ -4,8 +4,8 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
-from models import PriceRecord, Status, Product
-from stores import DEFAULT_SELECTORS
+from src.models import PriceRecord, Status, Product
+from src.stores import DEFAULT_SELECTORS
 
 logger = logging.getLogger(__name__)
 

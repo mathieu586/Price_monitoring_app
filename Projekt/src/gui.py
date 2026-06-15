@@ -6,11 +6,11 @@ from pathlib import Path
 import customtkinter as ctk
 from tkinter import ttk, filedialog
 import logging
-from file_security import check_readable
-from stores import StoreRegistry
-from repository import JsonRepository
-from scraper import Scraper
-from models import Product, PriceRecord
+from src.file_security import check_readable
+from src.stores import StoreRegistry
+from src.repository import JsonRepository
+from src.scraper import Scraper
+from src.models import Product, PriceRecord
 from CTkMessagebox import CTkMessagebox
 from monitor import PriceMonitor
 

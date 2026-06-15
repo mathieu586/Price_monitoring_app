@@ -1,9 +1,9 @@
 import json
 import logging
 from abc import ABC, abstractmethod
-from models import Product
+from src.models import Product
 from pathlib import Path
-from file_security import check_readable, check_writable
+from src.file_security import check_readable, check_writable
 
 logger = logging.getLogger(__name__)
 
