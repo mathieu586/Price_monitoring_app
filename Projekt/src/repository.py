@@ -3,6 +3,7 @@ import logging
 from abc import ABC, abstractmethod
 from models import Product
 from pathlib import Path
+from file_security import check_readable, check_writable
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,10 @@ class JsonRepository(ProductRepository):
     def load(self):
         if not self.path.exists():
             return
+        ok, msg = check_readable(self.path)
+        if not ok:
+            logger.error(msg)
+            raise PermissionError(msg)
         try:
             data = json.loads(self.path.read_text(encoding="utf-8"))
             for item in data:
@@ -35,6 +40,10 @@ class JsonRepository(ProductRepository):
             logger.error(f"Wystąpił błąd przy ładowaniu produktów: {e}")
 
     def save_to_json(self):
+        ok, msg = check_writable(self.path)
+        if not ok:
+            logger.error(msg)
+            raise PermissionError(msg)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_text(json.dumps([p.to_dict() for p in self.cache.values()], ensure_ascii=False, indent=2), encoding="utf-8")
 
