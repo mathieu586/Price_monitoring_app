@@ -1,9 +1,12 @@
 import json
 import time
 import threading
+from pathlib import Path
+
 import customtkinter as ctk
 from tkinter import ttk, filedialog
 import logging
+from file_security import check_readable
 from stores import StoreRegistry
 from repository import JsonRepository
 from scraper import Scraper
@@ -27,9 +30,12 @@ class Main_window(ctk.CTk):
         self.grid_columnconfigure(0, weight=4, uniform="a")
         self.grid_columnconfigure(1, weight=3, uniform="a")
 
-        self.repo = JsonRepository("product_data.json")
+        try:
+            self.repo = JsonRepository("product_data.json")
+            self.store_registry = StoreRegistry("stores.json")
+        except PermissionError as e:
+            CTkMessagebox(title="Błąd dostępu", message=f"Nie można otworzyć pliku danych:\n{e}")
         self.scraper = Scraper()
-        self.store_registry = StoreRegistry("stores.json")
         self.monitor = PriceMonitor(self.repo, self.scraper)
 
         self.make_button_rows()
@@ -659,6 +665,11 @@ class Main_window(ctk.CTk):
         path = filedialog.askopenfilename(title="Importuj dane",
                                           filetypes=[("Plik JSON", "*.json"), ("Wszystkie pliki", "*.*")])
         if not path:
+            return
+        path_check = Path(path)
+        ok, msg = check_readable(path_check)
+        if not ok:
+            CTkMessagebox(title="Błąd importu", message=msg)
             return
         try:
             with open(path, "r", encoding="utf-8") as f:

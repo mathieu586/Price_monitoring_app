@@ -1,6 +1,7 @@
 import json
 import logging
 from pathlib import Path
+from file_security import check_readable, check_writable
 
 logger = logging.getLogger(__name__)
 
@@ -125,6 +126,10 @@ class StoreRegistry:
     def load(self):
         if not self.file_path or not self.file_path.exists():
             return
+        ok, msg = check_readable(self.file_path)
+        if not ok:
+            logger.error(msg)
+            raise PermissionError(msg)
         try:
             data = json.loads(self.file_path.read_text(encoding="utf-8"))
             for item in data:
@@ -138,5 +143,9 @@ class StoreRegistry:
     def save_to_json(self):
         if not self.file_path:
             return
+        ok, msg = check_writable(self.file_path)
+        if not ok:
+            logger.error(msg)
+            raise PermissionError(msg)
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
         self.file_path.write_text(json.dumps([s.to_dict() for s in self.custom.values()], ensure_ascii=False, indent=2), encoding="utf-8")
