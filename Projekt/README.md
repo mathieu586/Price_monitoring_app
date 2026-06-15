@@ -55,13 +55,13 @@ python -m venv .venv
 
 ```bash
 cd Projekt
-..\.venv\Scripts\python src/gui.py
+..\.venv\Scripts\python src/main.py
 ```
 
 Lub bezpośrednio z katalogu `Projekt`:
 
 ```bash
-python src/gui.py
+python src/main.py
 ```
 
 > Środowisko wirtualne `.venv` nie jest częścią repozytorium i trzeba je stworzyć lokalnie na każdej maszynie.
@@ -92,6 +92,7 @@ Gotowy plik wykonywalny pojawi się w folderze `dist/PriceMonitor/PriceMonitor.e
 Projekt/
 ├── build.bat               # Skrypt budujący plik .exe
 └── src/
+    ├── main.py             # Punkt startowy aplikacji
     ├── gui.py              # Główne okno aplikacji i interfejs użytkownika
     ├── models.py           # Modele danych: Product, PriceRecord, ProductStats
     ├── scraper.py          # Pobieranie i ekstrakcja cen ze stron www
@@ -104,7 +105,9 @@ Projekt/
 
 ### Opis modułów
 
-**`gui.py`** - punkt wejścia aplikacji. Zawiera główne okno (`Main_window`) oraz wszystkie okna pomocnicze (dodawanie produktu, edycja, historia cen, zarządzanie sklepami).
+**`main.py`** - punkt wejścia aplikacji.
+
+**`gui.py`** - Zawiera główne okno (`Main_window`) oraz wszystkie okna pomocnicze (dodawanie produktu, edycja, historia cen, zarządzanie sklepami).
 
 **`models.py`** - definicje klas danych: `Product` (produkt), `PriceRecord` (pojedynczy wpis cenowy), `ProductStats` (statystyki produktu).
 
