@@ -31,7 +31,7 @@ Wymagane biblioteki:
 Instalacja wszystkich zależności:
 
 ```bash
-pip install customtkinter CTkMessagebox requests bs4
+pip install -r requirements
 ```
 
 ---
@@ -48,7 +48,7 @@ python -m venv .venv
 **Krok 2 - Zainstaluj zależności:**
 
 ```bash
-.venv\Scripts\pip install customtkinter CTkMessagebox requests beautifulsoup4
+.venv\Scripts\pip install -r .\Projekt\requirements.txt
 ```
 
 **Krok 3 - Uruchom aplikację:**
@@ -64,7 +64,7 @@ Lub bezpośrednio z katalogu `Projekt`:
 python src/gui.py
 ```
 
-> Środowisko wirtualne `.venv` nie jest częścią repozytorium – trzeba je stworzyć lokalnie na każdej maszynie.
+> Środowisko wirtualne `.venv` nie jest częścią repozytorium i trzeba je stworzyć lokalnie na każdej maszynie.
 
 ---
 
@@ -135,7 +135,7 @@ Po uruchomieniu aplikacji wyświetla się główne okno podzielone na dwie sekcj
 1. Kliknij przycisk **Dodaj**.
 2. Wypełnij formularz:
    - **Nazwa** - dowolna nazwa produktu
-   - **Link (URL)** - pełny adres strony produktu
+   - **Link URL** - pełny adres strony produktu
    - **Próg alarmowy** - cena, poniżej której chcesz dostać powiadomienie (opcjonalne)
 3. Kliknij **Dodaj Produkt**.
 
