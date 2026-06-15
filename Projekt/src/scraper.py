@@ -19,7 +19,7 @@ class Scraper:
         full_text = element.get("data-price") or element.get("content") or element.get_text(strip=True)
         if not full_text:
             logger.warning("Znaleziony element jest pusty")
-            return PriceRecord(price=0.0, currency="PLN", status=Status.ERROR, available=False)
+            return None
         full_text_upper = full_text.upper()
 
         currency = "PLN"
@@ -35,8 +35,8 @@ class Scraper:
         price_reg = re.search(r"(\d+[,.]\d{2}|\d+)", no_space_text)
 
         if not price_reg:
-            logger.warning(f"Nie wykryto ceny w tekście '{full_text}")
-            return PriceRecord(price=0.0, currency="PLN", status=Status.ERROR, available=False)
+            logger.warning(f"Nie wykryto ceny w tekście {full_text}")
+            return None
         full_price = price_reg.group(1)
         clean_price = float(full_price.replace(",", "."))
 
