@@ -1,8 +1,8 @@
 import time
 import logging
 
-from scraper import Scraper
-from repository import MemoryRepository
+from src.scraper import Scraper
+from src.repository import MemoryRepository
 
 logger = logging.getLogger(__name__)
 

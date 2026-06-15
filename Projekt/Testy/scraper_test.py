@@ -14,9 +14,9 @@ class TestScraper:
         result = scraper.extract_price_from_elem(element)
 
         assert result is not None
-        cena, waluta = result
-        assert cena == 1299.50
-        assert waluta == "USD"
+        price, currency = result
+        assert price == 1299.50
+        assert currency == "USD"
 
     def test_bledny_adres_strony(self):
         scraper = Scraper()
