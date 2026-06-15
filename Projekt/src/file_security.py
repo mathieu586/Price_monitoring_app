@@ -10,7 +10,7 @@ def check_readable(path):
         return False, "Nie wskazano pliku"
     try:
         with open(path, "rb") as f:
-            pass  # Jeśli się udało otworzyć, plik jest czytelny
+            pass
     except PermissionError:
         return False, "Brak uprawnień do pliku"
     except Exception as e:
