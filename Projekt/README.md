@@ -22,7 +22,7 @@ Wymagane biblioteki:
 
 | Biblioteka | Zastosowanie |
 |---|---|
-| `customtkinter` | Nowoczesny interfejs graficzny |
+| `customtkinter` | Graficzny interfejs użytkownika |
 | `CTkMessagebox` | Okna dialogowe i komunikaty |
 | `requests` | Pobieranie stron internetowych |
 | `beautifulsoup4` | Parsowanie HTML i ekstrakcja cen |
@@ -38,7 +38,7 @@ pip install -r requirements
 
 ## Uruchomienie
 
-**Krok 1 - Utwórz środowisko wirtualne** (zalecane, wykonaj raz):
+**Krok 1 - Utwórz środowisko wirtualne:**
 
 ```bash
 cd C:\Users\<TwojaNazwa>\Python\Jezyki_skryptowe_laby
