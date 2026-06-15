@@ -1,0 +1,6 @@
+customtkinter
+CTkMessagebox
+requests
+beautifulsoup4
+pytest
+pyinstaller
