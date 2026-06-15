@@ -12,7 +12,7 @@ from src.repository import JsonRepository
 from src.scraper import Scraper
 from src.models import Product, PriceRecord
 from CTkMessagebox import CTkMessagebox
-from monitor import PriceMonitor
+from src.monitor import PriceMonitor
 
 logger = logging.getLogger(__name__)
 
