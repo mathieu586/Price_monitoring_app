@@ -378,6 +378,7 @@ class Main_window(ctk.CTk):
                 self.product_tree.delete(product_id)
 
                 logger.info(f"Pomyślnie usunięto produkt: {product_name} | id: {product_id}")
+                self.add_notif_entry(f"[SYSTEM] Usunięto produkt {product_name}.")
             else:
                 logger.info(f"Niepowodzenie przy próbie usunięcia produktu: {product_name} | id: {product_id}")
                 CTkMessagebox(title="Błąd", message=f"Nie udało się usunąć produktu:\n{product_name}")
@@ -392,6 +393,7 @@ class Main_window(ctk.CTk):
             product = self.repo.get_product_by_id(product_id)
 
             self.monitor.check_product(product, notif_func=self.add_notif_entry)
+            self.add_notif_entry(f"[SYSTEM] Sprawdzono produkt {product.name}.")
             self.refresh_product_entries()
         else:
             CTkMessagebox(title="Wybierz produkt", message="Nie wybrano żadnego produktu!")
@@ -404,6 +406,7 @@ class Main_window(ctk.CTk):
             return
 
         self.monitor.check_all_products(notif_func=self.add_notif_entry)
+        self.add_notif_entry(f"[SYSTEM] Sprawdzono wszystkie produkty")
         self.refresh_product_entries()
 
     def start_checking_loop(self):
@@ -578,6 +581,7 @@ class Main_window(ctk.CTk):
             return
         if self.store_registry.delete_custom(selected[0]):
             tree.delete(selected[0])
+            self.add_notif_entry(f"[SYSTEM] Usunięto sklep {store.name}.")
         else:
             CTkMessagebox(title="Błąd", message="Nie udało się usunąć sklepu")
 
@@ -628,6 +632,7 @@ class Main_window(ctk.CTk):
                 self.store_registry.update_custom(new_store)
             else:
                 self.store_registry.add_custom(new_store)
+                self.add_notif_entry("[SYSTEM] Dodano nowy sklep.")
 
             self.stores_refresh(tree)
             form.destroy()
@@ -654,7 +659,7 @@ class Main_window(ctk.CTk):
             total = len(products)
             total_stores = len(custom_stores)
 
-            self.add_notif_entry(f"Wyeksportowano {total} produktów oraz {total_stores} sklepów do: {path}")
+            self.add_notif_entry(f"[SYSTEM] Wyeksportowano {total} produktów oraz {total_stores} sklepów do: {path}")
             CTkMessagebox(title="Eksport zakończony",
                           message=f"Pomyślnie wykesportowano {total} produktów oraz {total_stores} sklepów")
         except Exception as e:
@@ -742,7 +747,7 @@ class Main_window(ctk.CTk):
                 imported_products += 1
             self.refresh_product_entries()
             self.add_notif_entry(
-                f"Zaimportowano {imported_products} produktów ({skipped_products} pominięto) oraz {imported_stores} sklepów własnych.")
+                f"[SYSTEM] Zaimportowano {imported_products} produktów ({skipped_products} pominięto) oraz {imported_stores} sklepów własnych.")
             CTkMessagebox(title="Import zakończony",
                           message=f"Zaimportowano {imported_products} produktów ({skipped_products} pominięto) oraz {imported_stores} sklepów własnych.")
         except Exception as e:
